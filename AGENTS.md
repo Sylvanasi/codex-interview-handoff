@@ -12,7 +12,9 @@
 
 ## 两台机器的分工（2026-10-11 起）
 
-这个仓库在**两台机器**之间通过 GitHub 交接：<https://github.com/Sylvanasi/codex-mianshi.git>
+这个仓库在**两台机器**之间通过 GitHub 交接：<https://github.com/Sylvanasi/codex-interview-handoff.git>
+
+本仓库是**公开**的，Mac 端 clone 不需要登录。
 
 - **Windows（源码机）**：存着约 20G 的客户项目源码（`D:\develop\landray`，**不进仓库**）。
   这台的 Codex 负责：读源码 → 优化简历 → 更新台账与看板 → 提交推送。
@@ -42,7 +44,11 @@ Mac 端开工请先读 `Mac端-出demo说明.md`。
 |---|---|
 | `候选人画像-蒸馏.md` | 真实背景与能力边界，校准基准 |
 | `面试路线图-简历逐条台账.md` | A/B/C/D 四组共 64 条 + 46 道八股，带判定与处理动作 |
-| `简历-v2.md`、`简历-v3..v6.docx` | 简历迭代；v2 里挂着 8 处【待补】数字 |
+| `简历-v2.md`、`简历-v3..v8.docx` | 简历迭代；**最新版是 `简历-v8.docx`**，每版改动见同名的「这版改了什么」 |
+| `Mac端-出demo说明.md` | Mac 侧开工说明：先读什么、出 demo 的顺序、练完怎么回传 |
+| `coding-lab/springboot-lab/demo大纲.md` | demo 关卡大纲（SFTP 并发 → 待办聚合 → 幂等） |
+| `build_resume_v7.py`、`build_resume_v8.py` | 用 python-docx 生成对应版本的简历 docx |
+| `render_docx_local.py` | 把 docx 渲染成 PNG，用来做排版检查 |
 | `面试作战地图.html` | 64 + 46 个格子的状态看板 |
 | `缺口与项目场景.html` | 答得不完整 / 该会不会的点 + 对应 demo + 项目落点 |
 | `SSO单点登录-原理与面试话术.md`、`索引与慢SQL-面试过一遍.md`、`Spring注解速查-边问边记.md`、`Java面试速记.md`、`Java面试讲义.html` | 知识包 |

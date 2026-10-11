@@ -2,7 +2,7 @@
 
 > **这台（Mac）的职责：从简历出发，出可运行的 demo 给本人复习。**
 > Windows 那台负责读客户项目源码、优化简历，然后把结果推到本仓库。
-> 仓库：<https://github.com/Sylvanasi/codex-mianshi.git>（公开，clone 不需要登录）
+> 仓库：<https://github.com/Sylvanasi/codex-interview-handoff.git>（公开，clone 不需要登录）
 > 更新：2026-10-11
 
 ---
