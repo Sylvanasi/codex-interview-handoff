@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>缺口与项目场景 · 吴枫 Java 后端面试</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #171a23; --line: #2a2f3d; --text: #e6e8ef;
+    --dim: #9aa3b2; --good: #3ddc97; --warn: #ffb454; --bad: #ff6b6b; --accent: #5b9cff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 20px 80px; background: var(--bg); color: var(--text);
+    font: 15px/1.7 -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 40px 0 14px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .sub { color: var(--dim); font-size: 13px; margin-bottom: 6px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; font-size: 12.5px; }
+  .ok { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  code { background: #10131a; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; font-size: 12.5px; }
+  .tag { display: inline-block; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--dim); margin-right: 6px; }
+  .tag.warn { color: var(--warn); border-color: #4a3a1e; }
+  .tag.bad { color: var(--bad); border-color: #4a2222; }
+  ul { margin: 6px 0 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend { color: var(--dim); font-size: 12.5px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>缺口与项目场景</h1>
+  <div class="sub">吴枫 · Java 后端面试备考 · 版本 v2 · 更新 2026-10-09</div>
+  <div class="sub">这份是活文档：每答完一题，把你答得不完整的点、该会但不会的点、对应 demo、以及它在项目里的落点追加进来。每改一次我交给你一次。</div>
+
+  <h2>一、本轮缺口（第一题 · 金蝶云星瀚）</h2>
+  <div class="card">
+    <table>
+      <tr><th>考察点</th><th>现状</th><th>面试官会怎么追</th><th>你要补成什么话</th></tr>
+      <tr>
+        <td>链路方向</td><td class="ok">✅ 对</td>
+        <td>—</td>
+        <td>双向要一句话说清：采购侧推附件进 OA；OA 审批完成后反向推台账给金蝶。</td>
+      </tr>
+      <tr>
+        <td>协议与接口形态</td><td class="warn">⚠️ 没提</td>
+        <td>"你给金蝶的接口长什么样？"</td>
+        <td>HTTP + REST，请求体 <code>multipart/form-data</code>（JSON 部分 + 多个文件部分），返回统一结构 <code>{code,msg,data}</code>。</td>
+      </tr>
+      <tr>
+        <td>回执</td><td class="warn">⚠️ 没提</td>
+        <td>"你返回什么给他？他怎么知道成没成？"</td>
+        <td>同步返回业务单号 + 处理结果；失败要能让人拿去重推，而不是只回一个 200。</td>
+      </tr>
+      <tr>
+        <td>业务主键</td><td class="warn">⚠️ 没提</td>
+        <td>"两边怎么对上同一张单？"</td>
+        <td>贯穿全链路的业务单号（采购单号 / 合同编号）——它同时是幂等键、对账键、排查用的检索键。</td>
+      </tr>
+      <tr>
+        <td>代码落点</td><td class="warn">⚠️ 不够具体</td>
+        <td>"接口是哪个类？路径是什么？"</td>
+        <td>要能报出控制器 / 服务类名和 URL 路径，并说清监听器挂的是产品的哪个扩展点。</td>
+      </tr>
+      <tr>
+        <td>token 缓存</td><td class="ok">✅ 对</td>
+        <td>"过期时间怎么定？"</td>
+        <td>已经在讲：单例 + 静态变量 + 超时时间 + 惰性刷新。补一句过期时间怎么来的（对方返回的 <code>expires_in</code> 里减去安全余量，比如提前 5 分钟换）。</td>
+      </tr>
+      <tr>
+        <td>并发刷新</td><td class="warn">⚠️ 缺一句</td>
+        <td>"第二个线程进来会不会又刷新一次？"</td>
+        <td>检查"是否过期"这一步必须在锁内，所以第二个线程进来时看到已经是新的，不会重复换取。这句话要主动补上。</td>
+      </tr>
+      <tr>
+        <td>多实例部署</td><td class="warn">⚠️ 没提</td>
+        <td>"你部署几个节点？每个节点各换一份 token 会怎样？"</td>
+        <td>真实边界：进程内缓存每个节点各一份，会各换一次；对方若对同一凭证有并发限制就会出问题，所以要把 token 放进 Redis 共享。</td>
+      </tr>
+      <tr>
+        <td>401 兜底</td><td class="warn">⚠️ 没提</td>
+        <td>"凭证被对方提前失效呢？"</td>
+        <td>业务接口返回鉴权失败时：清掉本地缓存 → 强制换一次 → 原请求重试一次（只重试一次，防打转）。</td>
+      </tr>
+      <tr>
+        <td>异常分类</td><td class="warn">⚠️ 太笼统</td>
+        <td>"超时和参数报错，你的处理一样吗？"</td>
+        <td>分三类：超时 / 5xx → 可重试；4xx 字段校验不过 → 不重试，落错误表 + 告警；附件超限 → 提前在入口校验并明确回绝。</td>
+      </tr>
+      <tr>
+        <td>重复推送</td><td class="bad">❌ 方向错</td>
+        <td>"你自己怎么防重？"</td>
+        <td>原做法是等对方报错才知道重复 —— 被动。改成主动：本侧幂等台账 + 对方按单号幂等，双保险。</td>
+      </tr>
+      <tr>
+        <td>幂等实现</td><td class="warn">⚠️ 差两点</td>
+        <td>"先查再写，两个请求同时进来会怎样？"</td>
+        <td>要用 <code>SETNX</code> 原子占位，不能先 <code>exists</code> 再 <code>set</code>；Redis 之外还要有 DB 唯一约束兜底。</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>二、金蝶链路（面试时你脑子里要有这张图）</h2>
+  <div class="card">
+    <svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+      <defs>
+        <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="#5b9cff"/>
+        </marker>
+        <marker id="ar2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="#ffb454"/>
+        </marker>
+      </defs>
+
+      <text x="0" y="20" fill="#5b9cff" font-size="15" font-weight="700">方向一：采购 / 金蝶 → OA（对方调我们）</text>
+      <rect x="10" y="35" width="150" height="56" rx="10" fill="#10131a" stroke="#5b9cff"/>
+      <text x="85" y="60" fill="#e6e8ef" font-size="13" text-anchor="middle">采购侧发起</text>
+      <text x="85" y="78" fill="#9aa3b2" font-size="11" text-anchor="middle">合同 + 多个附件</text>
+
+      <line x1="160" y1="63" x2="228" y2="63" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar)"/>
+      <text x="194" y="54" fill="#9aa3b2" font-size="10.5" text-anchor="middle">POST</text>
+
+      <rect x="230" y="35" width="200" height="56" rx="10" fill="#10131a" stroke="#5b9cff"/>
+      <text x="330" y="58" fill="#e6e8ef" font-size="13" text-anchor="middle">OA 接收接口（我写的）</text>
+      <text x="330" y="76" fill="#9aa3b2" font-size="11" text-anchor="middle">multipart 多附件 + JSON</text>
+
+      <line x1="430" y1="63" x2="498" y2="63" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="500" y="35" width="180" height="56" rx="10" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="590" y="58" fill="#e6e8ef" font-size="13" text-anchor="middle">合同表 + 附件落库</text>
+      <text x="590" y="76" fill="#9aa3b2" font-size="11" text-anchor="middle">按业务单号记录</text>
+
+      <line x1="680" y1="63" x2="748" y2="63" stroke="#ffb454" stroke-width="2" marker-end="url(#ar2)"/>
+      <rect x="750" y="35" width="230" height="56" rx="10" fill="#10131a" stroke="#ffb454"/>
+      <text x="865" y="58" fill="#ffb454" font-size="13" text-anchor="middle">返回回执</text>
+      <text x="865" y="76" fill="#9aa3b2" font-size="11" text-anchor="middle">{code,msg,业务单号}</text>
+
+      <text x="0" y="140" fill="#3ddc97" font-size="15" font-weight="700">方向二：OA → 金蝶（我们调对方）</text>
+      <rect x="10" y="155" width="150" height="56" rx="10" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="85" y="178" fill="#e6e8ef" font-size="13" text-anchor="middle">起表单</text>
+      <text x="85" y="196" fill="#9aa3b2" font-size="11" text-anchor="middle">拉库中数据选中填充</text>
+
+      <line x1="160" y1="183" x2="228" y2="183" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="230" y="155" width="150" height="56" rx="10" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="305" y="178" fill="#e6e8ef" font-size="13" text-anchor="middle">审批流转</text>
+      <text x="305" y="196" fill="#9aa3b2" font-size="11" text-anchor="middle">走完流程</text>
+
+      <line x1="380" y1="183" x2="448" y2="183" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="450" y="155" width="170" height="56" rx="10" fill="#10131a" stroke="#5b9cff"/>
+      <text x="535" y="178" fill="#e6e8ef" font-size="13" text-anchor="middle">监听器（产品扩展点）</text>
+      <text x="535" y="196" fill="#9aa3b2" font-size="11" text-anchor="middle">流程结束事件触发</text>
+
+      <line x1="620" y1="183" x2="688" y2="183" stroke="#ff6b6b" stroke-width="2" marker-end="url(#ar2)"/>
+      <rect x="690" y="155" width="290" height="56" rx="10" fill="#10131a" stroke="#ff6b6b"/>
+      <text x="835" y="176" fill="#ff6b6b" font-size="13" text-anchor="middle">幂等占位 → 推送台账 → 记 DONE</text>
+      <text x="835" y="196" fill="#9aa3b2" font-size="11" text-anchor="middle">失败释放占位 / 超时先查单</text>
+
+      <rect x="10" y="245" width="970" height="135" rx="10" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="28" y="272" fill="#e6e8ef" font-size="13" font-weight="700">这张图里必须能随口答出的四个点</text>
+      <text x="28" y="298" fill="#9aa3b2" font-size="12.5">① 业务单号贯穿全链路：接收、入库、推送、幂等、对账，全用它。选主键或时间戳做幂等键是错的。</text>
+      <text x="28" y="322" fill="#9aa3b2" font-size="12.5">② 附件走 multipart 的独立分片，不进 JSON；单次附件数量与总大小要有上限，超限在入口就拒。</text>
+      <text x="28" y="346" fill="#9aa3b2" font-size="12.5">③ token 缓存在进程内单例：锁内检查过期 → 未过期直接复用 → 过期才换一次，其它线程阻塞等待。</text>
+      <text x="28" y="370" fill="#9aa3b2" font-size="12.5">④ 推送侧：先占位再推、成功才记 DONE、明确失败才释放并重试、超时先查单。对方报重复是最后的防线，不是第一道。</text>
+    </svg>
+    <div class="legend">画法要点：面试时在白板上照这个顺序画，边画边说"谁调谁、传什么、失败怎么办"，比报技术名词得分高。</div>
+  </div>
+
+  <h2>三、本轮的 demo：幂等推送实验室</h2>
+  <div class="card">
+    <p style="margin-top:0"><code>coding-lab/idempotent-push</code> —— 只用 JDK，不需要 Redis。跑法：</p>
+    <p><code>cd "/Users/wufeng/Documents/ChatGPT/面试/coding-lab/idempotent-push" &amp;&amp; ./run.sh</code></p>
+    <p>实测：4 个关卡、8 项验收全通过，约 4 秒。1.1 关会故意演示"20 个并发请求 → 对方收到 20 次"。</p>
+    <svg viewBox="0 0 1000 210" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+      <defs>
+        <marker id="ar3" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="#3ddc97"/>
+        </marker>
+      </defs>
+      <text x="0" y="18" fill="#3ddc97" font-size="14" font-weight="700">推送一次的正确顺序</text>
+
+      <rect x="10" y="35" width="150" height="50" rx="10" fill="#10131a" stroke="#3ddc97"/>
+      <text x="85" y="58" fill="#e6e8ef" font-size="12.5" text-anchor="middle">SETNX 占位</text>
+      <text x="85" y="74" fill="#9aa3b2" font-size="11" text-anchor="middle">键 = 业务单号</text>
+
+      <line x1="160" y1="60" x2="218" y2="60" stroke="#3ddc97" stroke-width="2" marker-end="url(#ar3)"/>
+      <rect x="220" y="35" width="150" height="50" rx="10" fill="#10131a" stroke="#3ddc97"/>
+      <text x="295" y="64" fill="#e6e8ef" font-size="12.5" text-anchor="middle">推送给对方</text>
+
+      <line x1="370" y1="60" x2="428" y2="60" stroke="#3ddc97" stroke-width="2" marker-end="url(#ar3)"/>
+      <rect x="430" y="35" width="180" height="50" rx="10" fill="#10131a" stroke="#3ddc97"/>
+      <text x="520" y="58" fill="#e6e8ef" font-size="12.5" text-anchor="middle">成功 → 标记 DONE</text>
+      <text x="520" y="74" fill="#9aa3b2" font-size="11" text-anchor="middle">回执为成功才算成功</text>
+
+      <line x1="610" y1="60" x2="668" y2="60" stroke="#ffb454" stroke-width="2" marker-end="url(#ar3)"/>
+      <rect x="670" y="35" width="150" height="50" rx="10" fill="#10131a" stroke="#ffb454"/>
+      <text x="745" y="58" fill="#ffb454" font-size="12.5" text-anchor="middle">明确失败</text>
+      <text x="745" y="74" fill="#9aa3b2" font-size="11" text-anchor="middle">释放占位，允许重试</text>
+
+      <line x1="820" y1="60" x2="878" y2="60" stroke="#ff6b6b" stroke-width="2" marker-end="url(#ar3)"/>
+      <rect x="880" y="35" width="110" height="50" rx="10" fill="#10131a" stroke="#ff6b6b"/>
+      <text x="935" y="58" fill="#ff6b6b" font-size="12.5" text-anchor="middle">超时</text>
+      <text x="935" y="74" fill="#9aa3b2" font-size="11" text-anchor="middle">先查单</text>
+
+      <text x="0" y="125" fill="#ffb454" font-size="13" font-weight="700">三条最容易答错的地方</text>
+      <text x="0" y="150" fill="#9aa3b2" font-size="12.5">先 exists 再 set = 人工制造并发窗口。必须一条原子指令。</text>
+      <text x="0" y="172" fill="#9aa3b2" font-size="12.5">先推后记账 = 推成功但这侧崩了，重试就重复；先占位再推 = 重试被拦住，代价是可能漏记。</text>
+      <text x="0" y="194" fill="#9aa3b2" font-size="12.5">超时是未知状态，不是失败状态。未知状态先查单，直接重试等于赌运气。</text>
+    </svg>
+  </div>
+
+  <h2>四、这条经历在面试里怎么说（60 秒版）</h2>
+  <div class="card">
+    <p>"我在深圳巴士集团那个项目里负责和金蝶云星瀚的对接，两个方向。采购系统那边把合同和多附件推给我们 OA，我提供一个 REST 接口收 multipart 报文，JSON 部分存合同表，附件单独落库，返回带业务单号的回执；用户在 OA 里起合同时可以把这个合同拉出来选中填充，走完审批再由流程结束的事件监听器把合同字段和附件反向推给金蝶台账接口。</p>
+    <p>最麻烦的是推送侧的一致性。金蝶那边同一张单推两次会报错，我一开始是等它报错才发现重复，很被动。后来改成主动幂等：用业务单号做幂等键，推送前先在 Redis 里 SETNX 占位并设过期时间，推送成功再改成完成标记，明确失败才释放占位允许重试；响应超时这种未知状态不直接重试，先调对方的查单接口确认。Redis 之外还留了一道数据库唯一约束兜底，因为缓存会过期、会重启。"</p>
+    <div class="legend">这段里的幂等部分，等你把 <code>idempotent-push</code> 4 个关卡跑通、能自己解释每一关的现象，才写进简历。</div>
+  </div>
+
+  <h2>五、Spring Boot 实验台（springboot-lab）</h2>
+  <div class="card">
+    <p style="margin-top:0">位置：<code>coding-lab/springboot-lab</code>。建它的唯一原因：你的简历上<b>一处 Spring Boot 都没有</b>，8 年 Java 却没有 Boot，面试官一定会问"你们用什么框架、怎么发布的"。</p>
+    <p>它同时把两个高风险说法变成了能跑的代码：<code>token 周期性缓存与鉴权复用</code>、<code>幂等与重复推送治理</code>。本机实测：编译 16 个源文件、<b>5 个业务用例全绿</b>（Spring Boot 3.5.0 + JBR 25，测试 4 秒）。</p>
+    <svg viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+      <defs>
+        <marker id="ar4" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="#5b9cff"/>
+        </marker>
+        <marker id="ar5" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="#3ddc97"/>
+        </marker>
+      </defs>
+
+      <text x="0" y="18" fill="#e6e8ef" font-size="14" font-weight="700">一次推送的完整调用链（这张图要能画出来）</text>
+
+      <rect x="0" y="35" width="120" height="48" rx="9" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="60" y="64" fill="#e6e8ef" font-size="12.5" text-anchor="middle">curl / 浏览器</text>
+
+      <line x1="120" y1="59" x2="163" y2="59" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar4)"/>
+      <rect x="165" y="35" width="140" height="48" rx="9" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="235" y="58" fill="#e6e8ef" font-size="12.5" text-anchor="middle">ContractController</text>
+      <text x="235" y="74" fill="#9aa3b2" font-size="10.5" text-anchor="middle">只做转发</text>
+
+      <line x1="305" y1="59" x2="348" y2="59" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar4)"/>
+      <rect x="350" y="35" width="170" height="48" rx="9" fill="#10131a" stroke="#3ddc97"/>
+      <text x="435" y="58" fill="#3ddc97" font-size="12.5" text-anchor="middle">tryAcquire 占位</text>
+      <text x="435" y="74" fill="#9aa3b2" font-size="10.5" text-anchor="middle">SETNX 语义 · 抢不到直接返回</text>
+
+      <line x1="520" y1="59" x2="563" y2="59" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar4)"/>
+      <rect x="565" y="35" width="160" height="48" rx="9" fill="#10131a" stroke="#2a2f3d"/>
+      <text x="645" y="58" fill="#e6e8ef" font-size="12.5" text-anchor="middle">KdxClient 发 HTTP</text>
+      <text x="645" y="74" fill="#9aa3b2" font-size="10.5" text-anchor="middle">带 token + 超时设置</text>
+
+      <line x1="725" y1="59" x2="768" y2="59" stroke="#5b9cff" stroke-width="2" marker-end="url(#ar4)"/>
+      <rect x="770" y="35" width="230" height="48" rx="9" fill="#10131a" stroke="#ff6b6b"/>
+      <text x="885" y="58" fill="#ff6b6b" font-size="12.5" text-anchor="middle">假金蝶 /mock/kdx/ledger</text>
+      <text x="885" y="74" fill="#9aa3b2" font-size="10.5" text-anchor="middle">可切超时 / 重复报错 / 401</text>
+
+      <path d="M435 83 L435 105 L120 105 L120 128" fill="none" stroke="#ffb454" stroke-width="2" marker-end="url(#ar5)"/>
+      <rect x="0" y="130" width="250" height="44" rx="9" fill="#10131a" stroke="#ffb454"/>
+      <text x="125" y="150" fill="#ffb454" font-size="12" text-anchor="middle">TokenService 旁路</text>
+      <text x="125" y="166" fill="#9aa3b2" font-size="10.5" text-anchor="middle">有效期内复用，过期才换一次</text>
+
+      <text x="330" y="150" fill="#9aa3b2" font-size="12.5">每次调对方前先取 token：缓存有效直接返回；</text>
+      <text x="330" y="170" fill="#9aa3b2" font-size="12.5">过期时换一次（判断在锁内，其他线程不会重复换）。</text>
+
+      <text x="0" y="212" fill="#3ddc97" font-size="14" font-weight="700">回执回来后分三个出口</text>
+      <rect x="0" y="228" width="300" height="46" rx="9" fill="#10131a" stroke="#3ddc97"/>
+      <text x="150" y="248" fill="#3ddc97" font-size="12.5" text-anchor="middle">成功 / 对方按幂等受理</text>
+      <text x="150" y="264" fill="#9aa3b2" font-size="10.5" text-anchor="middle">markDone，台账置 DONE</text>
+
+      <rect x="330" y="228" width="300" height="46" rx="9" fill="#10131a" stroke="#ffb454"/>
+      <text x="480" y="248" fill="#ffb454" font-size="12.5" text-anchor="middle">明确失败（4xx / 5xx）</text>
+      <text x="480" y="264" fill="#9aa3b2" font-size="10.5" text-anchor="middle">release 释放占位，允许重试</text>
+
+      <rect x="660" y="228" width="340" height="46" rx="9" fill="#10131a" stroke="#ff6b6b"/>
+      <text x="830" y="248" fill="#ff6b6b" font-size="12.5" text-anchor="middle">超时（未知状态）</text>
+      <text x="830" y="264" fill="#9aa3b2" font-size="10.5" text-anchor="middle">先调查单接口，对方有了就 markDone</text>
+
+      <text x="0" y="300" fill="#9aa3b2" font-size="12">顺序不能反：先占位 → 再推送 → 成功才记 DONE。先推后记账，只要中间崩一次，重试就会推第二遍。</text>
+      <text x="0" y="320" fill="#9aa3b2" font-size="12">超时不等于失败：未知状态先查单。这是"宁可漏记、不可重推"的落地方式。</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <table>
+      <tr><th>实验</th><th>怎么跑</th><th>预期结果</th></tr>
+      <tr><td>凭证缓存</td><td>连续 5 次 <code>POST /api/token/warm</code></td><td>真实换取次数仍是 1</td></tr>
+      <tr><td>并发取凭证</td><td><code>POST /api/token/parallel?threads=50</code></td><td>50 个线程，只换 1 次</td></tr>
+      <tr><td>401 自愈</td><td>先推一张单 → <code>POST /mock/kdx/revoke-tokens</code> → 再推新单</td><td>清缓存换一次后重试成功，只重试一次</td></tr>
+      <tr><td>串行幂等</td><td>同一张单 <code>push</code> 两次</td><td>第二次 SKIPPED，对方只收到 1 次</td></tr>
+      <tr><td>20 并发幂等</td><td><code>POST /api/contracts/X/push-parallel?threads=20</code></td><td>对方只收到 1 次</td></tr>
+      <tr><td>超时查单</td><td><code>POST /mock/kdx/config?timeoutAfterSuccess=true</code> 后再推</td><td>返回 TIMEOUT_CONFIRMED，不重复推送</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <p style="margin-top:0"><b>搭这个工程时踩到的三个坑（面试可以当"我遇到过什么"讲）</b></p>
+    <ul>
+      <li>XML 注释里不能出现 <code>--</code>，拿横线当分隔线会导致 Maven 直接报 POM 解析失败。</li>
+      <li>全局异常处理里只写 <code>@ExceptionHandler(Exception.class)</code> 兜底，会把框架的 401 变成 500 —— 于是"清缓存重试"这条自愈路径永远不触发。修法是显式放行 <code>ResponseStatusException</code> 并保留原状态码。</li>
+      <li><code>success</code> 和 <code>duplicate</code> 同时为 true 时，先判 <code>success</code> 就永远看不到"对方替我兜了底"的信号。判断顺序本身就是业务语义。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <p style="margin-top:0"><b>环境要准备什么</b></p>
+    <table>
+      <tr><th>组件</th><th>要不要</th><th>说明</th></tr>
+      <tr><td>Tomcat</td><td class="ok">不需要</td><td>Spring Boot 内嵌 Tomcat，<code>main</code> 方法直接起服务，不用装、不用打 war。这是必考面试题。</td></tr>
+      <tr><td>Maven</td><td class="ok">不用单独装</td><td>IDEA 内置了，打开 <code>pom.xml</code> 会自动下载依赖。</td></tr>
+      <tr><td>JDK</td><td class="bad">8 不行</td><td>本机装的是 Corretto 8，<b>跑不了 Spring Boot 3.x</b>（最低要求 17）。两条路：把 IDEA 自带的 JBR 25 加成 SDK（路径 <code>/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home</code>），或装 JDK 21 LTS（面试答这个最稳）。终端跑 <code>mvn</code> 时 <code>JAVA_HOME</code> 也要指向 17+。</td></tr>
+      <tr><td>Redis</td><td class="warn">要</td><td>下一步把内存台账换成真 Redis 才能讲出分布式幂等。OrbStack 已经装了 docker：<code>docker run -d --name interview-redis -p 6379:6379 redis:7-alpine</code></td></tr>
+      <tr><td>MySQL</td><td class="ok">已有（3306）</td><td>建独立库 <code>interview_lab</code>，别和业务库混；幂等表要建唯一索引，这是"缓存之外的最后一道防线"。</td></tr>
+    </table>
+  </div>
+
+  <h2>六、变更记录</h2>
+  <div class="card">
+    <table>
+      <tr><th>版本</th><th>日期</th><th>变了什么</th></tr>
+      <tr><td>v1</td><td>2026-10-09</td><td>首次建立：金蝶云星瀚一题的 12 项缺口、链路图、幂等推送 demo、60 秒话术。</td></tr>
+      <tr><td>v2</td><td>2026-10-09</td><td>并入 Spring Boot 实验台：调用链与三个出口的流程图、6 个实验、搭建时踩的三个坑、环境准备清单（Tomcat 不需要 / Redis 用 Docker / MySQL 已有）。</td></tr>
+      <tr><td>v2 更正</td><td>2026-10-10</td><td>本机实际装的是 Corretto 8，Spring Boot 3.x 跑不了；JDK 那一行改成"必须 17+，最快用 IDEA 自带 JBR 25"。</td></tr>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

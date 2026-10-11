@@ -1,0 +1,40 @@
+# ==========================================================================
+# 真·中间件配置：Redis + MySQL。用 --spring.profiles.active=infra 打开。
+# 默认 profile（不激活这个文件）用的是内存实现，零依赖就能跑。
+#
+# IDEA 里怎么激活：Run/Debug Configurations → Spring Boot → Active profiles 填 infra，
+# 或者 VM options 写 -Dspring.profiles.active=infra
+# ==========================================================================
+
+lab:
+  store: redis            # 幂等拦截层用真 Redis
+  repository: mysql       # 推送台账落 MySQL
+  redis-key-prefix: "oa:push:"
+  dedup-ttl-seconds: 3600
+  stuck-minutes: 5
+  reconcile-interval-millis: 60000
+
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      # 你的 Redis 如果设了密码，把下面两行打开
+      # password: your-password
+      timeout: 2s
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+
+  datasource:
+    # createDatabaseIfNotExist=true：库不存在就自动建，省得你手动 CREATE DATABASE
+    url: jdbc:mysql://127.0.0.1:3306/interview_lab?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    # 密码不写死在文件里：优先读环境变量 MYSQL_PASSWORD，没设就用 change-me 占位。
+    # 这也是真实项目的做法 —— 配置进代码库，密码进环境变量或配置中心。
+    password: ${MYSQL_PASSWORD:Passw0rd}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 3000

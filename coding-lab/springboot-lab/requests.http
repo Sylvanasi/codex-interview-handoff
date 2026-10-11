@@ -1,0 +1,250 @@
+### ===========================================================================
+### IDEA 内置的 HTTP Client 脚本：点每个请求左边的绿色箭头就能发，比 curl 方便。
+### 用法：从「实验零」往下一条一条点。每个实验都自带 reset，不用记着清状态。
+### 顺序：零 → 一 → 二 → 三 → 四 → 五 → 六 → 七
+### ===========================================================================
+
+
+### ===========================================================================
+### 实验零 · 环境自检（先跑这条）
+### 看 idempotentStore / pushRecordRepository / redisPing / mysql / pushRecordCount
+###   默认启动（不带 profile）：memory + memory，redisPing 显示未装配
+###   带 infra profile 启动：redis(prefix=oa:push:) + mysql(push_record)，redisPing 显示 PONG
+### ===========================================================================
+
+GET http://localhost:8080/api/infra
+
+
+### ===========================================================================
+### 实验一 · 凭证缓存：换一次，之后一直复用
+### ===========================================================================
+
+### 1.1 连续点三次（每次都会先拿缓存）
+POST http://localhost:8080/api/token/warm
+
+###
+POST http://localhost:8080/api/token/warm
+
+###
+POST http://localhost:8080/api/token/warm
+
+### 1.2 看状态：refreshCount 应该还是 1 —— 只换了一次，后面都在复用
+GET http://localhost:8080/api/token/state
+
+### 1.3 50 个线程同时第一次取 token：refreshCount 只 +1，不是 +50
+POST http://localhost:8080/api/token/parallel?threads=50
+
+### 1.4 清掉缓存再取一次：refreshCount 变 2，证明前面确实在复用
+POST http://localhost:8080/api/token/clear
+
+###
+POST http://localhost:8080/api/token/warm
+
+
+### ===========================================================================
+### 实验二 · 对方提前吊销凭证 → 401 自愈
+### ===========================================================================
+
+### 2.0 清干净
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+### 2.1 先推一张单，把 token 换出来缓存住
+POST http://localhost:8080/api/contracts/HT20250009/push
+
+### 2.2 对方把已签发的凭证全部吊销（模拟对方重启 / 主动吊销）
+POST http://localhost:8080/mock/kdx/revoke-tokens
+
+### 2.3 换一张新单推：带着旧 token 打过去 → 401 → 清缓存 → 换一次 → 重试一次 → SUCCESS
+POST http://localhost:8080/api/contracts/HT20250010/push
+
+### 2.4 看对方的凭证签发次数：比推送次数多 1
+GET http://localhost:8080/mock/kdx/stats
+
+
+### ===========================================================================
+### 实验三 · 串行重复推送：第二次被第一道闸拦住
+### ===========================================================================
+
+### 3.0 清干净
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+### 3.1 第一次推送：SUCCESS
+POST http://localhost:8080/api/contracts/HT20250001/push
+
+### 3.2 再推一次：SKIPPED_BY_CACHE（缓存里已有标记，根本没打对方接口）
+POST http://localhost:8080/api/contracts/HT20250001/push
+
+### 3.3 本侧统计：upstreamCalls=1，skippedByLocalLedger=1
+GET http://localhost:8080/api/stats
+
+### 3.4 对方统计：totalReceived=1（真的一次都没多）
+GET http://localhost:8080/mock/kdx/stats
+
+
+### ===========================================================================
+### 实验四 · 20 个线程并发推同一张单：对方只收到 1 次
+### ===========================================================================
+
+### 4.0 清干净
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+### 4.1 20 个线程同时冲进来
+POST http://localhost:8080/api/contracts/HT20250002/push-parallel?threads=20
+
+### 4.2 对方统计：totalReceived 必须是 1
+GET http://localhost:8080/mock/kdx/stats
+
+
+### ===========================================================================
+### 实验五 · 两层闸：Redis 丢了，数据库兜住（★ 最值得亲手跑的一条）
+### 面试官问"你只靠 Redis 吗？Redis 挂了怎么办"——现场跑这一遍给他看
+### ===========================================================================
+
+### 5.0 清干净
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+### 5.1 正常推一张单：两层台账都会记上
+POST http://localhost:8080/api/contracts/HT20250005/push
+
+### 5.2 只清缓存、保留数据库台账（模拟 Redis 重启 / 被清空 / TTL 到期）
+POST http://localhost:8080/api/reset-cache-only
+
+### 5.3 再推同一张单：返回 BLOCKED_BY_DB —— 第一道闸没了，第二道闸接住了
+POST http://localhost:8080/api/contracts/HT20250005/push
+
+### 5.4 看本侧统计：blockedByDatabase=1（这个数大于 0 就是"缓存曾失效"的信号）
+GET http://localhost:8080/api/stats
+
+### 5.5 看台账明细：这张单是 DONE（2），对方的 totalReceived 仍然是 1
+GET http://localhost:8080/api/push-records
+
+###
+GET http://localhost:8080/mock/kdx/stats
+
+
+### ===========================================================================
+### 实验六 · 把对方的坏行为打开：重复报错 / 响应超时
+### ===========================================================================
+
+### 6.0 清干净，并确认对方"重复就报错"（dedupByBizId=false）
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+###
+POST http://localhost:8080/mock/kdx/config?dedupByBizId=false
+
+### 6.1 先推成功一次
+POST http://localhost:8080/api/contracts/HT20250003/push
+
+### 6.2 两层台账都清掉（模拟缓存和库都没了），再推一次
+POST http://localhost:8080/api/reset
+
+### 6.3 这次真打到对方 → 对方 409 → 本侧 FAILED（说明台账不能丢）
+POST http://localhost:8080/api/contracts/HT20250003/push
+
+### 6.4 换成"对方按单号幂等"，重复推送会被对方受理
+POST http://localhost:8080/mock/kdx/config?dedupByBizId=true
+
+###
+POST http://localhost:8080/api/reset
+
+### 6.5 返回 DUPLICATE_ACCEPTED：能成功，但说明本地漏了一环，该告警
+POST http://localhost:8080/api/contracts/HT20250003/push
+
+### 6.6 打开"处理成功但响应超时"
+POST http://localhost:8080/api/reset
+
+###
+POST http://localhost:8080/mock/kdx/reset
+
+###
+POST http://localhost:8080/mock/kdx/config?timeoutAfterSuccess=true
+
+### 6.7 这条会卡 1.5 秒左右，然后返回 TIMEOUT_CONFIRMED（超时后查单，确认对方已受理）
+POST http://localhost:8080/api/contracts/HT20250004/push
+
+### 6.8 关掉坏行为，恢复干净状态
+POST http://localhost:8080/mock/kdx/config?timeoutAfterSuccess=false
+
+
+### ===========================================================================
+### 实验七 · 健康检查（Actuator）
+### ===========================================================================
+
+GET http://localhost:8080/actuator/health
+
+
+### ===========================================================================
+### 实验八 · 待办聚合：串行 vs 并发（JUC 线程池）
+### ===========================================================================
+
+### 8.1 先把四个上游都恢复成正常
+POST http://localhost:8080/mock/pending/config?system=OA&mode=OK
+
+###
+POST http://localhost:8080/mock/pending/config?system=ERP&mode=OK
+
+###
+POST http://localhost:8080/mock/pending/config?system=HR&mode=OK
+
+###
+POST http://localhost:8080/mock/pending/config?system=FIN&mode=OK
+
+### 8.2 串行基线：注意 totalCostMillis，四个上游耗时是"相加"的
+GET http://localhost:8080/api/pending/aggregate?parallel=false
+
+### 8.3 并发：同一组上游，totalCostMillis 应该约等于"最慢的那个"
+GET http://localhost:8080/api/pending/aggregate?parallel=true
+
+### 8.4 让 HR 慢 200ms（还没到 250ms 预算，所以不降级，但总耗时由它决定）
+POST http://localhost:8080/mock/pending/config?system=HR&mode=SLOW&delayMillis=200
+
+###
+GET http://localhost:8080/api/pending/aggregate?parallel=true
+
+### 8.5 让 HR 慢到 2 秒 —— 超过 250ms 预算，只降级 HR，其余三个照常返回
+POST http://localhost:8080/mock/pending/config?system=HR&mode=SLOW&delayMillis=2000
+
+###
+GET http://localhost:8080/api/pending/aggregate?parallel=true
+
+### 8.6 让 ERP 直接报 500 —— 只降级 ERP，itemCount 应该从 8 变成 6
+POST http://localhost:8080/mock/pending/config?system=ERP&mode=FAIL
+
+###
+GET http://localhost:8080/api/pending/aggregate?parallel=true
+
+### 8.7 让 FIN 卡死（睡 5 秒不返回）—— 同样只降级它
+POST http://localhost:8080/mock/pending/config?system=FIN&mode=STUCK
+
+###
+GET http://localhost:8080/api/pending/aggregate?parallel=true
+
+### 8.8 看线程池实时状态：activeCount / queueSize / rejectedCount
+GET http://localhost:8080/api/pending/pool
+
+### 8.9 恢复干净状态，再做别的实验
+POST http://localhost:8080/mock/pending/config?system=HR&mode=OK
+
+###
+POST http://localhost:8080/mock/pending/config?system=ERP&mode=OK
+
+###
+POST http://localhost:8080/mock/pending/config?system=FIN&mode=OK
+
+### 8.10 看四个上游当前的行为开关
+GET http://localhost:8080/mock/pending/state

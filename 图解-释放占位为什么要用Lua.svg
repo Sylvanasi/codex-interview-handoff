@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640"
+     font-family="-apple-system, PingFang SC, Helvetica Neue, sans-serif">
+
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#ff6b6b"/>
+    </marker>
+  </defs>
+
+  <rect width="1180" height="640" fill="#0f1117"/>
+
+  <text x="40" y="44" fill="#e6e8ef" font-size="22" font-weight="700">释放占位：两个独立的问题，别混在一起</text>
+  <text x="40" y="72" fill="#9aa3b2" font-size="13">
+    身份（value 里放谁占的）解决"我能不能分清这个位是不是我的"；原子性（Lua）解决"我检查的值和我删除的值是不是同一瞬间的值"
+  </text>
+
+  <!-- ==================== 2x2 矩阵 ==================== -->
+  <text x="40" y="110" fill="#9aa3b2" font-size="12.5">四种组合，看到每种写法缺的到底是什么：</text>
+
+  <!-- ① -->
+  <rect x="40" y="124" width="310" height="120" rx="10" fill="#141019" stroke="#ff6b6b"/>
+  <text x="58" y="150" fill="#e6e8ef" font-size="13.5" font-weight="700">① 两步 GET + DEL</text>
+  <text x="58" y="172" fill="#ff6b6b" font-size="12.5">value = 通用状态「使用中」</text>
+  <text x="58" y="196" fill="#9aa3b2" font-size="12.5">GET 拿到的值和自己的值一样，</text>
+  <text x="58" y="216" fill="#9aa3b2" font-size="12.5">分不清是谁占的</text>
+  <text x="58" y="236" fill="#ff6b6b" font-size="12.5">❌ 判断本身就错了</text>
+
+  <!-- ② -->
+  <rect x="362" y="124" width="310" height="120" rx="10" fill="#141019" stroke="#ff6b6b"/>
+  <text x="380" y="150" fill="#e6e8ef" font-size="13.5" font-weight="700">② 两步 GET + DEL</text>
+  <text x="380" y="172" fill="#3ddc97" font-size="12.5">value = 唯一 owner（身份没问题）</text>
+  <text x="380" y="196" fill="#9aa3b2" font-size="12.5">检查通过的那一刻值是对的，</text>
+  <text x="380" y="216" fill="#9aa3b2" font-size="12.5">但删除之前值被换掉了</text>
+  <text x="380" y="236" fill="#ff6b6b" font-size="12.5">❌ 判断对了，照样误删 ← 原子性问题</text>
+
+  <!-- ③ -->
+  <rect x="40" y="256" width="310" height="120" rx="10" fill="#141019" stroke="#ff6b6b"/>
+  <text x="58" y="282" fill="#e6e8ef" font-size="13.5" font-weight="700">③ Lua 原子比对 + 删除</text>
+  <text x="58" y="304" fill="#ff6b6b" font-size="12.5">value = 通用状态「使用中」</text>
+  <text x="58" y="328" fill="#9aa3b2" font-size="12.5">脚本里比的那两个值天生相等，</text>
+  <text x="58" y="348" fill="#9aa3b2" font-size="12.5">条件永远成立</text>
+  <text x="58" y="368" fill="#ff6b6b" font-size="12.5">❌ 原子了也白搭</text>
+
+  <!-- ④ -->
+  <rect x="362" y="256" width="310" height="120" rx="10" fill="#101a16" stroke="#3ddc97"/>
+  <text x="380" y="282" fill="#e6e8ef" font-size="13.5" font-weight="700">④ Lua 原子比对 + 删除</text>
+  <text x="380" y="304" fill="#3ddc97" font-size="12.5">value = 唯一 owner</text>
+  <text x="380" y="328" fill="#9aa3b2" font-size="12.5">比对和删除是同一瞬间完成的，</text>
+  <text x="380" y="348" fill="#9aa3b2" font-size="12.5">中间插不进任何其他命令</text>
+  <text x="380" y="368" fill="#3ddc97" font-size="12.5">✅ 安全</text>
+
+  <!-- ==================== 右侧：② 是怎么发生的 ==================== -->
+  <rect x="700" y="124" width="440" height="252" rx="10" fill="#171a23" stroke="#ffb454"/>
+  <text x="720" y="152" fill="#ffb454" font-size="14" font-weight="700">② 那条缝：owner 也挡不住</text>
+
+  <text x="720" y="180" fill="#9aa3b2" font-size="12.5">T3a · A 执行 GET → 返回 ownerA</text>
+  <text x="740" y="200" fill="#3ddc97" font-size="12.5">检查通过：这个位确实还是我的 ✔</text>
+
+  <text x="720" y="230" fill="#9aa3b2" font-size="12.5">T3b · 就在这之后的一瞬间</text>
+  <text x="740" y="250" fill="#ffb454" font-size="12.5">key 到期被删 → C 占位成功 → 值变成 ownerC</text>
+
+  <line x1="730" y1="262" x2="730" y2="288" stroke="#ff6b6b" stroke-width="2" marker-end="url(#ar)"/>
+
+  <text x="720" y="306" fill="#9aa3b2" font-size="12.5">T3c · A 执行 DEL → 无条件删除</text>
+  <text x="740" y="326" fill="#ff6b6b" font-size="12.5">删掉的是 ownerC，C 的占位没了</text>
+
+  <text x="720" y="356" fill="#e6e8ef" font-size="12.5" font-weight="700">⇒ 检查看到的是 ownerA，删掉的是 ownerC。</text>
+
+  <!-- ==================== 底部结论 ==================== -->
+  <rect x="40" y="404" width="1100" height="196" rx="12" fill="#171a23" stroke="#2a2f3d"/>
+  <text x="62" y="434" fill="#e6e8ef" font-size="14.5" font-weight="700">两把锁，开两把不同的门，缺一不可</text>
+
+  <text x="62" y="466" fill="#3ddc97" font-size="13">身份 owner：让我能分清"这个位是不是我的"。</text>
+  <text x="62" y="488" fill="#9aa3b2" font-size="13">
+    只加 Lua 不加身份 → 落进 ③：脚本里比较的两个值天生相等，条件永远成立，照样误删。
+  </text>
+
+  <text x="62" y="520" fill="#ffb454" font-size="13">原子性 Lua：让我"检查的值"和"删除的值"是同一瞬间的值。</text>
+  <text x="62" y="542" fill="#9aa3b2" font-size="13">
+    只加身份不用 Lua → 落进 ②：检查通过之后、删除之前，值被别人换掉（术语叫 TOCTOU：检查时刻和使用时刻不一致）。
+  </text>
+
+  <text x="62" y="578" fill="#e6e8ef" font-size="13">
+    面试一句话：释放占位要同时做两件事 —— value 存本次请求唯一的 owner；用 Lua 把"比对 owner"和"删除"合成一条命令。
+  </text>
+</svg>

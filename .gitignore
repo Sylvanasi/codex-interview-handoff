@@ -1,0 +1,38 @@
+# 构建产物（本地可重建，不进仓库）
+target/
+out/
+*.class
+*.jar
+*.war
+
+# 本地数据库 / 测试数据（slow-sql 可由 setup.sql 重建）
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+
+# macOS
+.DS_Store
+._*
+
+# 日志 / 临时文件
+*.log
+*.tmp
+nohup.out
+
+# 渲染产物与缓存（本地可重建：render_docx_local.py 会重新生成 .build/）
+.build/
+__pycache__/
+*.pyc
+
+# Office / WPS 的临时锁文件（打开文档时会生成 ~$ 前缀的文件）
+~$*

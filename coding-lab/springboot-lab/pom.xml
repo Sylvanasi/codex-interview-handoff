@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Spring Boot 实验台
+  ==================================================================
+  为什么是这三个依赖？记住这个判断标准，面试官问"你项目里引了什么"时你要能答上来：
+  1. spring-boot-starter-web —— 提供内嵌 Tomcat + Spring MVC + Jackson。
+     注意"内嵌"两个字：Spring Boot 不需要你单独装 Tomcat、打 war 包，
+     main 方法直接起一个 Tomcat，这是它和传统 Spring MVC 最大的区别之一。
+  2. spring-boot-starter-actuator —— 提供 /actuator/health 这类运维端点，
+     是用来讲"服务上线后怎么被监控"的现成例子。
+  3. spring-boot-starter-test —— 自带 JUnit 5 + AssertJ + Spring Test，
+     我们的并发幂等测试就写在它上面。
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      继承 spring-boot-starter-parent 是 Maven 项目的常规写法，它帮你做三件事：
+      1. 管版本：下面所有 starter 都不用写 <version>，避免版本冲突；
+      2. 管插件：编译插件、打包插件的默认配置都调好了；
+      3. 管属性：<java.version> 一改，编译和运行的目标 JDK 版本跟着改。
+      面试点：这就是 Maven 的"依赖管理（dependencyManagement）+ 父 POM 继承"。
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.wufeng</groupId>
+    <artifactId>springboot-lab</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>springboot-lab</name>
+    <description>Java 后端面试备考用的 Spring Boot 实验台：token 缓存 + 幂等推送</description>
+
+    <properties>
+        <!--
+          Spring Boot 3.x 要求 JDK 17 起步。
+          本机只有 IntelliJ 自带的 JBR 25，用它跑没问题；
+          但把编译目标写成 17 更稳（Spring Boot 3.5 支持 17~24）。
+          在 IDEA 里如果提示 JDK 版本问题：File → Project Structure → SDK 选 17 或 21 即可。
+        -->
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Web：内嵌 Tomcat + Spring MVC + JSON 序列化 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 运维端点：/actuator/health，用来讲"上线后怎么知道服务活着" -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!--
+          Redis：spring-boot-starter-data-redis 自带 Lettuce 客户端和 StringRedisTemplate。
+          我们只用它做两件事：SETNX 占位（setIfAbsent）、记完成标记。
+          这就是"Redis 作为快速拦截层"的角色，不承担最终正确性。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!--
+          JDBC：只引 jdbc 不引 JPA。
+          原因：幂等台账要的是"一条 INSERT 撞唯一索引"这种精确控制，
+          ORM 会帮你生成 SQL，反而看不清到底发出去什么语句。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- MySQL 驱动：只在运行时需要（编译期用的是 java.sql 接口），所以 scope=runtime -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 测试：只在 test 阶段存在，不会打进最终 jar -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+          H2：只在测试里用。目的是让"DB 唯一索引兜底"这段逻辑能在没有 MySQL 的机器上被自动化验证。
+          H2 开 MySQL 兼容模式后，唯一约束的行为和 MySQL 一致（第二次插入直接报错）。
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              spring-boot-maven-plugin 负责把项目打成"可执行 jar"（java -jar xxx.jar 直接跑）。
+              没有它，打出来的 jar 缺少 MANIFEST 里的主类信息，运行会报"没有主清单属性"。
+              这句话是面试常问的："你们怎么发布？" —— 打可执行 jar 或者用 Docker 镜像。
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

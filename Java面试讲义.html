@@ -1,0 +1,2597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Java 面试详细讲义</title>
+<style>
+  :root{
+    --bg:#f5f6f9; --card:#ffffff; --ink:#1d2230; --muted:#5d6676;
+    --line:#e4e7ee;
+    --blue:#2f6fed;  --blue-s:#eaf1ff;
+    --amber:#d9822b; --amber-s:#fff4e5;
+    --green:#1f9d63; --green-s:#e8f7f0;
+    --red:#d64545;   --red-s:#fdecec;
+    --purple:#7a5af8;--purple-s:#f1edff;
+    --gray:#8e99ab;  --gray-s:#f1f3f7;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; padding:0 16px 80px; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",
+                "Microsoft YaHei","Source Han Sans SC",sans-serif;
+    font-size:15px; line-height:1.75;
+  }
+  .wrap{max-width:1040px; margin:0 auto}
+
+  /* ---------- 封面 ---------- */
+  .cover{
+    background:linear-gradient(135deg,#2f6fed 0%,#7a5af8 100%);
+    color:#fff; border-radius:0 0 20px 20px; padding:38px 40px 30px;
+    margin:0 -16px 26px;
+  }
+  .cover h1{margin:0 0 8px; font-size:30px; letter-spacing:.5px}
+  .cover p{margin:0; opacity:.9; font-size:14px}
+  .cover .tags{margin-top:16px; display:flex; flex-wrap:wrap; gap:8px}
+  .cover .tags span{
+    background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3);
+    padding:3px 10px; border-radius:99px; font-size:12.5px;
+  }
+
+  /* ---------- 目录 ---------- */
+  .toc{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:18px 22px 20px; margin-bottom:26px;
+  }
+  .toc h2{margin:0 0 12px; font-size:15px; color:var(--muted); font-weight:600; letter-spacing:1px}
+  .toc ol{margin:0; padding-left:0; list-style:none; counter-reset:c;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:6px 18px}
+  .toc li{counter-increment:c}
+  .toc a{
+    display:block; padding:5px 10px; border-radius:8px; text-decoration:none;
+    color:var(--ink); font-size:14px; border:1px solid transparent;
+  }
+  .toc a::before{content:counter(c) ". "; color:var(--blue); font-weight:700}
+  .toc a:hover{background:var(--blue-s); border-color:#cfe0ff}
+
+  /* ---------- 章节 ---------- */
+  section{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:26px 30px 30px; margin-bottom:26px;
+  }
+  h2.ch{
+    margin:0 0 22px; padding:0 0 14px; font-size:23px;
+    border-bottom:2px solid var(--line);
+  }
+  h2.ch small{
+    display:inline-block; margin-right:10px; vertical-align:3px;
+    font-size:12.5px; font-weight:700; color:#fff; background:var(--blue);
+    padding:2px 10px; border-radius:99px; letter-spacing:.5px;
+  }
+  h3{margin:30px 0 12px; font-size:17px; padding-left:11px; border-left:4px solid var(--blue);
+     border-radius:2px; line-height:1.35}
+  h3:first-of-type{margin-top:6px}
+  h4{margin:20px 0 8px; font-size:15px; color:#333c4d}
+  p{margin:9px 0}
+  ul,ol{margin:9px 0; padding-left:24px}
+  li{margin:4px 0}
+  code{
+    background:#f0f2f7; border:1px solid #e2e6ee; border-radius:5px;
+    padding:1px 5px; font-size:13px;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  pre.code{
+    background:#1e2430; color:#e6e9f0; border-radius:10px; padding:14px 16px;
+    overflow-x:auto; font-size:13px; line-height:1.65; margin:12px 0;
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+  }
+  pre.code .c{color:#7f8b9e}
+  pre.code .k{color:#7aa2f7}
+  pre.code .s{color:#9ece6a}
+
+  /* ---------- 高亮块 ---------- */
+  .tip,.warn,.key,.qa{
+    border-radius:10px; padding:12px 16px; margin:14px 0;
+    border-left:4px solid; font-size:14.5px;
+  }
+  .tip{background:var(--blue-s);  border-color:var(--blue)}
+  .warn{background:var(--red-s);   border-color:var(--red)}
+  .key{background:var(--amber-s);  border-color:var(--amber)}
+  .qa{background:var(--green-s);   border-color:var(--green)}
+  .tip b,.warn b,.key b,.qa b{font-weight:700}
+  .tag{
+    display:inline-block; font-size:11.5px; font-weight:700; padding:1px 8px;
+    border-radius:99px; margin-right:8px; vertical-align:1px; color:#fff;
+  }
+  .tag.t1{background:var(--red)}
+  .tag.t2{background:var(--amber)}
+  .tag.t3{background:var(--gray)}
+
+  /* ---------- 表格 ---------- */
+  table{
+    width:100%; border-collapse:collapse; margin:14px 0; font-size:14px;
+    border:1px solid var(--line); border-radius:10px; overflow:hidden;
+  }
+  th,td{padding:9px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top}
+  th{background:#f3f5fa; font-weight:700; font-size:13.5px; color:#3a4356}
+  tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even){background:#fafbfd}
+
+  /* ---------- 图 ---------- */
+  figure{margin:20px 0 22px; padding:0}
+  figure svg{width:100%; height:auto; display:block}
+  figcaption{
+    text-align:center; font-size:13px; color:var(--muted); margin-top:8px;
+  }
+  .dg text{font-family:inherit}
+  .dg .t{font-size:13px; fill:#1d2230; text-anchor:middle; dominant-baseline:central}
+  .dg .t2{font-size:11.5px; fill:#5d6676; text-anchor:middle; dominant-baseline:central}
+  .dg .tm{font-size:12.5px; fill:#1d2230; text-anchor:middle; dominant-baseline:central;
+          font-family:"SF Mono",Menlo,Consolas,monospace}
+  .dg .el{font-size:11.5px; fill:#6b7484; text-anchor:middle; dominant-baseline:central}
+  .dg .lh{font-size:12.5px; fill:#1d2230; dominant-baseline:central}
+  .dg .box{fill:#fff; stroke:#c6d0e2; stroke-width:1.5}
+  .dg .blue{fill:#eaf1ff; stroke:#2f6fed}
+  .dg .amber{fill:#fff4e5; stroke:#d9822b}
+  .dg .green{fill:#e8f7f0; stroke:#1f9d63}
+  .dg .red{fill:#fdecec; stroke:#d64545}
+  .dg .purple{fill:#f1edff; stroke:#7a5af8}
+  .dg .gray{fill:#f1f3f7; stroke:#8e99ab}
+  .dg .ed{stroke:#8e99ab; stroke-width:1.6; fill:none}
+  .dg .edb{stroke:#2f6fed; stroke-width:1.6; fill:none}
+  .dg .edr{stroke:#d64545; stroke-width:1.6; fill:none; stroke-dasharray:5 4}
+  .dg .edg{stroke:#1f9d63; stroke-width:1.6; fill:none}
+
+  /* ---------- 打印 ---------- */
+  @media print{
+    body{background:#fff; font-size:12px; padding:0}
+    .cover{border-radius:0; margin:0 0 16px; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .toc{page-break-after:always}
+    section{page-break-before:always; border:none; padding:0; margin:0 0 20px; border-radius:0}
+    section:first-of-type{page-break-before:auto}
+    figure{page-break-inside:avoid}
+    table{page-break-inside:avoid}
+    h3{page-break-after:avoid}
+    *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+
+<div class="cover">
+  <h1>Java 面试详细讲义</h1>
+  <p>面向 3～8 年经验的原理深挖版 · 配流程图 / 源码要点 / 追问答法</p>
+  <div class="tags">
+    <span>HashMap</span><span>ConcurrentHashMap</span><span>JVM</span><span>JUC</span>
+    <span>线程池</span><span>Redis</span><span>分布式事务</span><span>Spring</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">HashMap 与 ConcurrentHashMap</a></li>
+    <li><a href="#s2">JVM 内存模型与垃圾回收</a></li>
+    <li><a href="#s3">JUC 并发工具</a></li>
+    <li><a href="#s4">线程池</a></li>
+    <li><a href="#s5">Redis</a></li>
+    <li><a href="#s6">分布式事务</a></li>
+    <li><a href="#s7">Spring 与 Spring Boot</a></li>
+    <li><a href="#s8">速查表与复习路线</a></li>
+  </ol>
+</nav>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 1 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s1">
+<h2 class="ch"><small>第 1 章</small>HashMap 与 ConcurrentHashMap</h2>
+
+<p>这一章几乎是每场面试的开场题。面试官真正想确认的是三件事：你知不知道<strong>结构怎么变</strong>（链表→红黑树）、<strong>扩容怎么算</strong>（为什么是 2 倍）、<strong>并发下会出什么问题</strong>（以及 CHM 怎么修的）。</p>
+
+<h3>1.1 底层结构：数组 + 链表 + 红黑树</h3>
+
+<p>JDK8 的 HashMap 本质是一个<strong>散列表</strong>：一个 <code>Node[]</code> 数组，每个下标叫一个「桶」，哈希冲突的元素挂在同一个桶里，先用链表串起来，链表太长就转成红黑树。</p>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 420" role="img" aria-label="HashMap 结构图">
+    <defs>
+      <marker id="arr1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="40" y="24">table（Node[] 数组，长度永远是 2 的幂）</text>
+
+    <!-- 数组 -->
+    <g>
+      <rect class="box" x="40"  y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="114" y="42" width="74" height="44" rx="6"/>
+      <rect class="blue" x="188" y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="262" y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="336" y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="410" y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="484" y="42" width="74" height="44" rx="6"/>
+      <rect class="blue" x="558" y="42" width="74" height="44" rx="6"/>
+      <rect class="box" x="632" y="42" width="74" height="44" rx="6"/>
+    </g>
+    <text class="t2" x="77"  y="102">0</text>
+    <text class="t2" x="151" y="102">1</text>
+    <text class="t2" x="225" y="102">2</text>
+    <text class="t2" x="299" y="102">3</text>
+    <text class="t2" x="373" y="102">4</text>
+    <text class="t2" x="447" y="102">5</text>
+    <text class="t2" x="521" y="102">6</text>
+    <text class="t2" x="595" y="102">7</text>
+    <text class="t2" x="669" y="102">8</text>
+
+    <!-- 桶3：链表 -->
+    <path class="ed" d="M299,86 L299,128" marker-end="url(#arr1)"/>
+    <rect class="blue" x="254" y="130" width="90" height="42" rx="6"/>
+    <text class="t" x="299" y="151">Node</text>
+    <path class="ed" d="M299,172 L299,200" marker-end="url(#arr1)"/>
+    <rect class="blue" x="254" y="202" width="90" height="42" rx="6"/>
+    <text class="t" x="299" y="223">Node</text>
+    <path class="ed" d="M299,244 L299,272" marker-end="url(#arr1)"/>
+    <rect class="blue" x="254" y="274" width="90" height="42" rx="6"/>
+    <text class="t" x="299" y="295">Node</text>
+    <text class="t2" x="299" y="342">链表：查找 O(n)</text>
+
+    <!-- 桶7：红黑树 -->
+    <path class="ed" d="M595,86 L595,128" marker-end="url(#arr1)"/>
+    <circle class="purple" cx="595" cy="152" r="22"/>
+    <text class="t" x="595" y="152">T</text>
+    <path class="ed" d="M578,170 L548,198" marker-end="url(#arr1)"/>
+    <path class="ed" d="M612,170 L642,198" marker-end="url(#arr1)"/>
+    <circle class="purple" cx="536" cy="222" r="22"/>
+    <text class="t" x="536" y="222">T</text>
+    <circle class="purple" cx="654" cy="222" r="22"/>
+    <text class="t" x="654" y="222">T</text>
+    <text class="t2" x="595" y="272">红黑树：查找 O(log n)</text>
+    <text class="t2" x="595" y="342">链表长度 ≥ 8 且数组长度 ≥ 64 → 树化</text>
+
+    <!-- 右侧说明 -->
+    <rect class="gray" x="740" y="130" width="230" height="188" rx="10"/>
+    <text class="t" x="855" y="156">三个关键常量</text>
+    <text class="t2" x="855" y="184">初始容量 16</text>
+    <text class="t2" x="855" y="208">负载因子 0.75</text>
+    <text class="t2" x="855" y="232">树化阈值 8 / 退化 6</text>
+    <text class="t2" x="855" y="256">最小树化容量 64</text>
+    <text class="t2" x="855" y="288">扩容：2 倍的整数倍增长</text>
+  </svg>
+  <figcaption>图 1-1　HashMap 底层结构：数组 + 链表 + 红黑树</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th>常量</th><th>值</th><th>为什么是这个值</th></tr></thead>
+  <tbody>
+    <tr><td><code>DEFAULT_INITIAL_CAPACITY</code></td><td>16</td><td>2 的幂，太小频繁扩容，太大浪费空间</td></tr>
+    <tr><td><code>DEFAULT_LOAD_FACTOR</code></td><td>0.75</td><td>源码注释：节点近似泊松分布，λ=0.5 时冲突最少；0.75 是<strong>空间与冲突概率的折中</strong></td></tr>
+    <tr><td><code>TREEIFY_THRESHOLD</code></td><td>8</td><td>负载因子 0.75 下，一个桶里放 8 个元素的概率约 <code>6×10⁻⁸</code>，属于极端情况</td></tr>
+    <tr><td><code>UNTREEIFY_THRESHOLD</code></td><td>6</td><td>留 2 的缓冲，避免在 8 附近反复树化/退化抖动</td></tr>
+    <tr><td><code>MIN_TREEIFY_CAPACITY</code></td><td>64</td><td>数组太小说明是扩容没跟上，先扩容而不是树化</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 hash 扰动：为什么要 <code>h ^ (h &gt;&gt;&gt; 16)</code></h3>
+
+<pre class="code"><span class="c">// JDK8 的扰动函数</span>
+<span class="k">static final int</span> hash(Object key) {
+    <span class="k">int</span> h;
+    <span class="k">return</span> (key == <span class="k">null</span>) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16);
+}</pre>
+
+<p>核心矛盾：<strong>定位下标用的是 <code>(n-1) &amp; hash</code>，而 n 很小时只有 hash 的低几位参与运算</strong>，高位信息被完全浪费。如果两个 key 的 hashCode 只有高位不同、低位相同，它们就会撞到同一个桶。</p>
+
+<p>解决办法就是让<strong>高 16 位异或到低 16 位</strong>，一次运算就把高低位的信息混合起来，成本极低但显著降低碰撞。</p>
+
+<div class="key"><b>为什么定位能用位运算？</b>因为容量 n 是 2 的幂，此时 <code>(n-1) &amp; hash</code> 与 <code>hash % n</code> 结果完全一致，但位运算比取模快得多。这也反过来解释了「容量为什么必须是 2 的幂」。</div>
+
+<h3>1.3 put 全流程</h3>
+
+<p>这张图要回答一个很容易被忽略的问题：<strong>「key 相同就覆盖」的判定发生在桶里的每一个节点上，而不只是首节点</strong>。首节点只是遍历的起点。</p>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 1180" role="img" aria-label="HashMap put 流程图">
+    <defs>
+      <marker id="arr2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <!-- 入口 -->
+    <rect class="blue" x="140" y="20" width="320" height="46" rx="9"/>
+    <text class="tm" x="300" y="43">put(key, value)</text>
+    <path class="ed" d="M300,66 L300,90" marker-end="url(#arr2)"/>
+
+    <rect class="blue" x="140" y="92" width="320" height="56" rx="9"/>
+    <text class="tm" x="300" y="112">hash = (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)</text>
+    <text class="tm" x="300" y="132">i = (n - 1) &amp; hash</text>
+    <path class="ed" d="M300,148 L300,174" marker-end="url(#arr2)"/>
+
+    <!-- 桶为空 -->
+    <polygon class="amber" points="300,178 470,224 300,270 130,224"/>
+    <text class="t" x="300" y="224">桶为空 tab[i] == null ?</text>
+    <path class="ed" d="M470,224 L566,224" marker-end="url(#arr2)"/>
+    <text class="el" x="516" y="212">是</text>
+    <rect class="green" x="570" y="201" width="340" height="46" rx="9"/>
+    <text class="t" x="740" y="224">新建 Node 放入 tab[i]</text>
+    <path class="ed" d="M300,270 L300,306" marker-end="url(#arr2)"/>
+    <text class="el" x="318" y="292">否</text>
+
+    <!-- 红黑树 -->
+    <polygon class="amber" points="300,310 470,356 300,402 130,356"/>
+    <text class="t" x="300" y="356">该桶是 TreeNode（红黑树）?</text>
+    <path class="ed" d="M470,356 L566,356" marker-end="url(#arr2)"/>
+    <text class="el" x="516" y="344">是</text>
+    <rect class="purple" x="570" y="318" width="340" height="76" rx="9"/>
+    <text class="t" x="740" y="344">交给 putTreeVal 处理</text>
+    <text class="t2" x="740" y="370">树里命中就覆盖，没命中就插入</text>
+    <path class="ed" d="M300,402 L300,426" marker-end="url(#arr2)"/>
+    <text class="el" x="318" y="416">否</text>
+
+    <!-- 从首节点开始遍历 -->
+    <rect class="blue" x="140" y="430" width="320" height="52" rx="9"/>
+    <text class="t" x="300" y="448">p = tab[i]，从首节点开始</text>
+    <text class="t2" x="300" y="468">逐个往后比较，不是只比第一个</text>
+    <path class="ed" d="M300,482 L300,530" marker-end="url(#arr2)"/>
+
+    <!-- 命中判定 -->
+    <polygon class="amber" points="300,534 470,580 300,626 130,580"/>
+    <text class="t" x="300" y="580">p.hash 相等且 equals ?</text>
+    <path class="ed" d="M470,580 L566,580" marker-end="url(#arr2)"/>
+    <text class="el" x="516" y="568">是</text>
+    <rect class="purple" x="570" y="557" width="340" height="46" rx="23"/>
+    <text class="t" x="740" y="580">覆盖 p.value，返回旧值</text>
+    <path class="ed" d="M300,626 L300,662" marker-end="url(#arr2)"/>
+    <text class="el" x="318" y="644">否</text>
+
+    <!-- 到尾了吗 -->
+    <polygon class="amber" points="300,666 470,712 300,758 130,712"/>
+    <text class="t" x="300" y="712">p.next == null ?（到尾了）</text>
+    <path class="ed" d="M470,712 L566,712" marker-end="url(#arr2)"/>
+    <text class="el" x="516" y="700">是</text>
+    <rect class="green" x="570" y="689" width="340" height="46" rx="9"/>
+    <text class="t" x="740" y="712">尾插新节点到链表末尾</text>
+
+    <!-- 回环：没到尾就往后走再看一遍 -->
+    <path class="ed" d="M130,712 L70,712 L70,580 L126,580" marker-end="url(#arr2)"/>
+    <text class="el" x="104" y="733">否：p = p.next</text>
+
+    <!-- 尾插后判断是否树化 -->
+    <path class="ed" d="M740,735 L740,770 L300,770 L300,790" marker-end="url(#arr2)"/>
+    <polygon class="amber" points="300,794 470,840 300,886 130,840"/>
+    <text class="t" x="300" y="840">链表长度 ≥ 8 ?</text>
+    <path class="ed" d="M470,840 L566,840" marker-end="url(#arr2)"/>
+    <text class="el" x="516" y="828">是</text>
+    <rect class="purple" x="570" y="817" width="340" height="46" rx="9"/>
+    <text class="t" x="740" y="840">树化（若 table &lt; 64 则先扩容）</text>
+    <path class="ed" d="M910,840 L935,840"/>
+    <path class="ed" d="M300,886 L300,910" marker-end="url(#arr2)"/>
+    <text class="el" x="318" y="898">否</text>
+
+    <!-- 计数 -->
+    <rect class="blue" x="140" y="912" width="320" height="46" rx="9"/>
+    <text class="tm" x="300" y="935">++modCount;  ++size</text>
+
+    <!-- 汇总总线：桶为空新建 + 树化，都汇到 ++size -->
+    <path class="ed" d="M910,224 L935,224 L935,935 L464,935" marker-end="url(#arr2)"/>
+    <path class="ed" d="M300,958 L300,982" marker-end="url(#arr2)"/>
+
+    <!-- 扩容判断 -->
+    <polygon class="amber" points="300,986 470,1032 300,1078 130,1032"/>
+    <text class="tm" x="300" y="1032">size &gt; threshold ?</text>
+    <path class="edr" d="M470,1032 L566,1032" marker-end="url(#arrr2)"/>
+    <text class="el" x="516" y="1020">是</text>
+    <rect class="red" x="570" y="1009" width="340" height="46" rx="9"/>
+    <text class="t" x="740" y="1032">resize() 扩容为 2 倍</text>
+    <path class="ed" d="M740,1055 L740,1127 L406,1127" marker-end="url(#arr2)"/>
+    <path class="ed" d="M300,1078 L300,1100" marker-end="url(#arr2)"/>
+    <text class="el" x="318" y="1088">否</text>
+
+    <!-- END -->
+    <rect class="gray" x="200" y="1102" width="200" height="46" rx="23"/>
+    <text class="t" x="300" y="1125">返回 null</text>
+  </svg>
+  <figcaption>图 1-2　HashMap 的 put 全流程（覆盖判定发生在链表的每一个节点上，而不是只在首节点）</figcaption>
+</figure>
+
+<div class="key"><b>这张图最容易看错的地方：</b>「key 相同就覆盖」<strong>不是只在首节点判断一次</strong>。桶非空时会顺着 <code>next</code> 逐个比较，<strong>命中哪个节点就覆盖哪个节点的 value</strong>，一路比到尾都没命中，才尾插新节点。首节点只是循环的第一次迭代。</div>
+
+<div class="tip"><b>口述模板：</b>先算扰动 hash，用 <code>(n-1)&amp;hash</code> 定位桶；桶为空就直接放；非空先看是不是红黑树，是就交给 putTreeVal；否则从首节点开始顺着链表逐个比 hash 和 equals，<strong>命中哪个节点就覆盖哪个</strong>；一路比到尾都没命中才尾插；尾插后判断要不要树化；最后 size 超过阈值就扩容。</div>
+
+<h3>1.4 扩容：为什么是 2 倍，JDK8 又优化了什么</h3>
+
+<p><strong>触发条件</strong>：插入新节点后 <code>++size &gt; threshold</code>，其中 <code>threshold = capacity × loadFactor</code>。</p>
+
+<p>JDK7 扩容要<strong>重新计算每个元素的 hash 和下标</strong>，代价很大。JDK8 抓住了一个数学性质：容量翻倍后，新的下标只有两种可能。</p>
+
+<p>关键就一句：<strong>判断 <code>hash &amp; oldCap</code> 这一位是 0 还是 1</strong>。</p>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 360" role="img" aria-label="HashMap 扩容 lo/hi 拆分">
+    <defs>
+      <marker id="arr3" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb3" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr3" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg3" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="30" y="26">扩容前：capacity = 16，下标 = hash &amp; 15（只看低 4 位）</text>
+    <rect class="gray" x="30" y="44" width="360" height="44" rx="8"/>
+    <text class="tm" x="210" y="66">桶 j 里有 4 个节点</text>
+
+    <path class="ed" d="M210,88 L210,124" marker-end="url(#arr3)"/>
+    <text class="el" x="300" y="106">扩容：capacity 16 → 32</text>
+
+    <text class="lh" x="30" y="152">判断每一位元素的 (hash &amp; oldCap) == 0 ?</text>
+
+    <!-- lo -->
+    <path class="ed" d="M150,168 L150,200" marker-end="url(#arr3)"/>
+    <text class="el" x="196" y="184">= 0</text>
+    <rect class="green" x="30" y="202" width="250" height="52" rx="9"/>
+    <text class="t" x="155" y="220">留在原下标 j</text>
+    <text class="t2" x="155" y="240">低位链 loHead / loTail</text>
+
+    <!-- hi -->
+    <path class="ed" d="M470,168 L470,200" marker-end="url(#arr3)"/>
+    <text class="el" x="522" y="184">= 1</text>
+    <rect class="blue" x="350" y="202" width="250" height="52" rx="9"/>
+    <text class="t" x="475" y="220">移到下标 j + oldCap</text>
+    <text class="t2" x="475" y="240">高位链 hiHead / hiTail</text>
+
+    <!-- 结果 -->
+    <text class="lh" x="660" y="80">扩容后数组</text>
+    <rect class="gray" x="660" y="100" width="140" height="44" rx="8"/>
+    <text class="t2" x="730" y="122">桶 j（lo 链）</text>
+    <rect class="gray" x="660" y="156" width="140" height="44" rx="8"/>
+    <text class="t2" x="730" y="178">桶 j + 16（hi 链）</text>
+    <text class="t2" x="640" y="228">不需要重算 hash，</text>
+    <text class="t2" x="640" y="250">只把原链表拆成两条</text>
+    <text class="t2" x="640" y="272">→ 均摊 O(1)</text>
+
+    <rect class="amber" x="30" y="286" width="940" height="54" rx="9"/>
+    <text class="t" x="500" y="304">等价说法：元素的新位置 = 原位置，或者 原位置 + oldCap</text>
+    <text class="t2" x="500" y="324">原因：容量是 2 的幂，扩容后多出来的那一位正好由 hash 的 oldCap 对应位决定</text>
+  </svg>
+  <figcaption>图 1-3　JDK8 扩容的 lo / hi 链表拆分（不需要重新计算哈希）</figcaption>
+</figure>
+
+<div class="key"><b>为什么容量必须是 2 的幂？</b>三个理由串起来答：① <code>(n-1)&amp;hash</code> 才能等价取模；② 位运算比取模快；③ 扩容时元素要么原位要么 +oldCap，不用重算 hash，这是 JDK8 扩容优化的前提。</div>
+
+<h3>1.5 树化与退化</h3>
+
+<ul>
+  <li><strong>树化</strong>：链表长度 ≥ 8 <em>且</em> table.length ≥ 64 → 转红黑树，查询从 O(n) 降到 O(log n)。</li>
+  <li><strong>退化</strong>：扩容后树节点数 ≤ 6 → 退回链表。</li>
+  <li>数组长度 &lt; 64 时即使链表到 8 也<strong>先扩容</strong>，因为扩容能立刻把链表拆短，比树化更划算。</li>
+</ul>
+
+<h3>1.6 HashMap 为什么线程不安全</h3>
+
+<table>
+  <thead><tr><th>版本</th><th>插入方式</th><th>并发后果</th></tr></thead>
+  <tbody>
+    <tr><td>JDK7</td><td><strong>头插法</strong></td><td>并发扩容时链表指针错乱<strong>形成环形链表</strong>，之后 get 会<strong>死循环、CPU 打满</strong></td></tr>
+    <tr><td>JDK8</td><td><strong>尾插法</strong></td><td>不再成环，但两个线程同时 put 可能<strong>互相覆盖丢数据</strong>，<code>size</code> 也不准</td></tr>
+  </tbody>
+</table>
+
+<div class="warn"><b>有个细节值得说：</b>JDK8 改成尾插<strong>不是为了修死循环</strong>，主要是为了配合红黑树转换（需要知道尾节点）。死循环是顺带被修掉的，真正的并发安全仍然要靠 ConcurrentHashMap。</div>
+
+<h3>1.7 ConcurrentHashMap：从分段锁到 CAS + synchronized</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 400" role="img" aria-label="ConcurrentHashMap JDK7 与 JDK8 结构对比">
+    <defs>
+      <marker id="arr4" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb4" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr4" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg4" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <!-- JDK7 -->
+    <text class="lh" x="30" y="26">JDK7：分段锁 Segment（继承 ReentrantLock，默认 16 段）</text>
+    <rect class="amber" x="30" y="44" width="440" height="40" rx="8"/>
+    <text class="t" x="250" y="64">ConcurrentHashMap</text>
+    <path class="ed" d="M110,84 L110,110" marker-end="url(#arr4)"/>
+    <path class="ed" d="M250,84 L250,110" marker-end="url(#arr4)"/>
+    <path class="ed" d="M390,84 L390,110" marker-end="url(#arr4)"/>
+    <rect class="amber" x="50"  y="112" width="120" height="40" rx="8"/>
+    <text class="t2" x="110" y="132">Segment 0</text>
+    <rect class="amber" x="190" y="112" width="120" height="40" rx="8"/>
+    <text class="t2" x="250" y="132">Segment 1</text>
+    <rect class="amber" x="330" y="112" width="120" height="40" rx="8"/>
+    <text class="t2" x="390" y="132">Segment 15</text>
+    <text class="t2" x="250" y="176">每个 Segment = HashEntry[] + 链表，各自持锁</text>
+    <text class="t2" x="250" y="200">定位要两次 hash：高位定 Segment，低位定桶</text>
+
+    <rect class="gray" x="30" y="222" width="440" height="66" rx="9"/>
+    <text class="t" x="250" y="244">并发度 = Segment 数量（默认 16）</text>
+    <text class="t2" x="250" y="268">问题：粒度仍偏粗，同一个 Segment 内不同桶也会互相阻塞</text>
+
+    <!-- 分隔 -->
+    <path class="ed" d="M500,20 L500,370" stroke-dasharray="4 6"/>
+
+    <!-- JDK8 -->
+    <text class="lh" x="540" y="26">JDK8：取消 Segment，CAS + synchronized 锁单个桶</text>
+    <rect class="green" x="540" y="44" width="430" height="40" rx="8"/>
+    <text class="t" x="755" y="64">table（Node[]，和 HashMap 同构）</text>
+    <path class="ed" d="M600,84 L600,110" marker-end="url(#arr4)"/>
+    <path class="ed" d="M680,84 L680,110" marker-end="url(#arr4)"/>
+    <path class="ed" d="M760,84 L760,110" marker-end="url(#arr4)"/>
+    <rect class="green" x="555" y="112" width="90" height="40" rx="8"/>
+    <text class="t2" x="600" y="132">桶为空</text>
+    <rect class="green" x="635" y="112" width="90" height="40" rx="8"/>
+    <text class="t2" x="680" y="132">桶非空</text>
+    <rect class="green" x="715" y="112" width="90" height="40" rx="8"/>
+    <text class="t2" x="760" y="132">正在扩容</text>
+    <text class="t2" x="600" y="176">CAS 直接放</text>
+    <text class="t2" x="680" y="176">synchronized(头节点)</text>
+    <text class="t2" x="760" y="176">helpTransfer 协助</text>
+
+    <rect class="gray" x="540" y="222" width="430" height="66" rx="9"/>
+    <text class="t" x="755" y="244">并发度 = 桶的数量（数组长度）</text>
+    <text class="t2" x="755" y="268">锁粒度从「段」细化到「桶」，冲突概率大幅下降</text>
+
+    <rect class="blue" x="30" y="304" width="940" height="70" rx="9"/>
+    <text class="t" x="500" y="326">一句话总结演进方向：锁粒度越来越细 —— 整表 → 段 → 单个桶</text>
+    <text class="t2" x="500" y="350">JDK7 用 ReentrantLock 显式加锁，JDK8 大量用 CAS + 内置锁，减少阻塞、降低内存占用</text>
+  </svg>
+  <figcaption>图 1-4　ConcurrentHashMap 的结构演进</figcaption>
+</figure>
+
+<h4>JDK8 的 put 逻辑（口述重点）</h4>
+
+<ol>
+  <li>桶为空：用 <strong>CAS</strong> 直接放入头节点（失败就重试）。</li>
+  <li>桶为 <code>MOVED</code>（ForwardingNode）：说明正在扩容，<strong>当前线程去帮忙扩容</strong>。</li>
+  <li>桶非空：<code>synchronized</code> 锁住<strong>头节点</strong>，再按链表/红黑树插入。</li>
+  <li>插入后 <code>addCount</code> 统计并判断是否触发扩容。</li>
+</ol>
+
+<h4>size 的统计：baseCount + CounterCell[]</h4>
+
+<p>多个线程同时 <code>++size</code> 会激烈竞争同一个变量。CHM 借鉴 <strong>LongAdder</strong> 的分治思想：以 <code>baseCount</code> 为基准，竞争激烈时分散到 <code>CounterCell[]</code> 数组的不同槽，最后累加求和。代价是 <code>size()</code> 只是<strong>近似值（弱一致）</strong>。</p>
+
+<h4>扩容：多线程协助</h4>
+
+<p>用 <code>sizeCtl</code> 同时表达「扩容阈值」和「扩容状态」。已迁移的桶放一个 <code>ForwardingNode</code> 占位，其他线程看到它就<strong>一起来搬数据</strong>，把一次大扩容的工作量分摊给多个线程。</p>
+
+<h4>为什么不允许 null</h4>
+
+<p>并发场景下，<code>get</code> 返回 null 有两种可能：key 不存在，或者 value 就是 null。单线程的 HashMap 可以用 <code>containsKey</code> 二次确认，但在并发下这中间状态可能已被改写，<strong>无法给出确定语义</strong>，所以直接禁止。</p>
+
+<h3>1.8 高频追问速答</h3>
+
+<div class="qa"><b>Q：HashMap 为什么线程不安全？</b><br>
+A：JDK7 并发扩容头插会形成<strong>环形链表导致 get 死循环</strong>；JDK8 改尾插不成环了，但并发 put 仍会<strong>覆盖丢数据、size 不准</strong>。所以并发场景要用 CHM。</div>
+
+<div class="qa"><b>Q：为什么链表长度是 8 才转红黑树？</b><br>
+A：0.75 负载因子下节点数服从泊松分布，一个桶里达到 8 个元素的概率约 <code>6×10⁻⁸</code>，几乎不可能。所以 8 是「正常情况下永远用不到」的兜底阈值，只有<strong>恶意构造哈希碰撞</strong>才会触发。</div>
+
+<div class="qa"><b>Q：ConcurrentHashMap 的 get 需要加锁吗？</b><br>
+A：<strong>不需要</strong>。Node 的 <code>val</code> 和 <code>next</code> 都是 volatile 的，get 靠可见性保证读到最新值，是无锁读。</div>
+
+<div class="qa"><b>Q：为什么 CHM 不允许 null，而 HashMap 可以？</b><br>
+A：CHM 是并发容器，返回 null 无法区分「不存在」和「值为 null」，语义有歧义，所以直接禁止。</div>
+
+<div class="qa"><b>Q：CHM 的 size() 是准确的吗？</b><br>
+A：<strong>不是</strong>。用 baseCount + CounterCell 分散计数，求和得到的是近似值，属于弱一致。并发下想要精确数量，得用 <code>mappingCount()</code> 并接受近似语义。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 2 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s2">
+<h2 class="ch"><small>第 2 章</small>JVM 内存模型与垃圾回收</h2>
+
+<p>JVM 这一章面试官最爱问的是：<strong>内存区域怎么划</strong>、<strong>对象怎么分配</strong>、<strong>垃圾怎么回收</strong>、<strong>线上出问题怎么查</strong>。前三个是八股，最后一个才是分水岭。</p>
+
+<h3>2.1 运行时数据区</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 440" role="img" aria-label="JVM 运行时数据区">
+    <defs>
+      <marker id="arr5" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb5" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr5" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg5" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <!-- 线程私有容器 -->
+    <rect x="30" y="44" width="450" height="300" rx="12" fill="#f7faff" stroke="#b9d1fb" stroke-dasharray="6 5"/>
+    <text class="lh" x="52" y="68">线程私有（每个线程一份，随线程生死）</text>
+
+    <rect class="blue" x="50" y="88" width="410" height="54" rx="9"/>
+    <text class="t" x="255" y="108">程序计数器 PC</text>
+    <text class="t2" x="255" y="128">当前线程执行的字节码行号，唯一不会 OOM 的区域</text>
+
+    <rect class="blue" x="50" y="152" width="410" height="54" rx="9"/>
+    <text class="t" x="255" y="172">虚拟机栈</text>
+    <text class="t2" x="255" y="192">栈帧 = 局部变量表 + 操作数栈 + 动态链接 + 返回地址</text>
+
+    <rect class="blue" x="50" y="216" width="410" height="54" rx="9"/>
+    <text class="t" x="255" y="236">本地方法栈</text>
+    <text class="t2" x="255" y="256">为 native 方法服务</text>
+
+    <text class="t2" x="255" y="298">栈深度超限 → StackOverflowError</text>
+    <text class="t2" x="255" y="320">栈无法申请到内存 → OutOfMemoryError</text>
+
+    <!-- 共享容器 -->
+    <rect x="520" y="44" width="450" height="300" rx="12" fill="#f7fffa" stroke="#b3e4c9" stroke-dasharray="6 5"/>
+    <text class="lh" x="542" y="68">线程共享（所有线程共用，GC 主战场）</text>
+
+    <rect class="green" x="540" y="88" width="410" height="130" rx="9"/>
+    <text class="t" x="745" y="108">堆</text>
+    <rect class="box" x="554" y="122" width="130" height="56" rx="6"/>
+    <text class="t2" x="619" y="142">Eden</text>
+    <text class="t2" x="619" y="162">8</text>
+    <rect class="box" x="690" y="122" width="56" height="56" rx="6"/>
+    <text class="t2" x="718" y="142">S0</text>
+    <text class="t2" x="718" y="162">1</text>
+    <rect class="box" x="752" y="122" width="56" height="56" rx="6"/>
+    <text class="t2" x="780" y="142">S1</text>
+    <text class="t2" x="780" y="162">1</text>
+    <rect class="box" x="814" y="122" width="122" height="56" rx="6"/>
+    <text class="t2" x="875" y="142">Old</text>
+    <text class="t2" x="875" y="162">老年代</text>
+    <text class="t2" x="745" y="200">新生代 : 老年代 ≈ 1 : 2，Eden : S0 : S1 = 8 : 1 : 1</text>
+
+    <rect class="green" x="540" y="232" width="410" height="66" rx="9"/>
+    <text class="t" x="745" y="254">方法区 / 元空间 Metaspace</text>
+    <text class="t2" x="745" y="276">类元信息、运行时常量池、静态变量；JDK8 后用本地内存</text>
+
+    <text class="t2" x="745" y="320">元空间默认不限大小，受物理内存约束</text>
+
+    <!-- 直接内存 -->
+    <rect class="amber" x="30" y="366" width="940" height="52" rx="9"/>
+    <text class="t" x="500" y="386">直接内存（Direct Memory）：NIO 的 DirectByteBuffer，位于堆外，不受 -Xmx 限制</text>
+    <text class="t2" x="500" y="406">元空间和直接内存都在本地内存里，所以「堆没满」也可能 OOM</text>
+  </svg>
+  <figcaption>图 2-1　JVM 运行时数据区</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th>区域</th><th>线程</th><th>存放内容</th><th>异常</th></tr></thead>
+  <tbody>
+    <tr><td>程序计数器</td><td>私有</td><td>当前字节码行号</td><td>唯一不会 OOM</td></tr>
+    <tr><td>虚拟机栈</td><td>私有</td><td>栈帧（局部变量等）</td><td>StackOverflowError / OOM</td></tr>
+    <tr><td>本地方法栈</td><td>私有</td><td>native 方法</td><td>同上</td></tr>
+    <tr><td>堆</td><td>共享</td><td>对象实例、数组</td><td>OOM: Java heap space</td></tr>
+    <tr><td>方法区 / 元空间</td><td>共享</td><td>类元信息、常量、静态变量</td><td>OOM: Metaspace</td></tr>
+    <tr><td>直接内存</td><td>共享</td><td>NIO 堆外缓冲区</td><td>OOM: Direct buffer memory</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>常考细节：</b>JDK8 用<strong>元空间（本地内存）</strong>取代了 JDK7 的永久代。所以「JDK8 之后 PermGen 去哪了」的答案是：移到本地内存，参数从 <code>-XX:MaxPermSize</code> 变成 <code>-XX:MaxMetaspaceSize</code>。</div>
+
+<h3>2.2 对象是怎么创建和分配的</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 880" role="img" aria-label="对象内存分配流程">
+    <defs>
+      <marker id="arr6" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb6" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr6" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg6" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="120" y="20" width="320" height="46" rx="9"/>
+    <text class="tm" x="280" y="43">new Object()</text>
+    <path class="ed" d="M280,66 L280,94" marker-end="url(#arr6)"/>
+
+    <polygon class="amber" points="280,98 445,140 280,182 115,140"/>
+    <text class="t" x="280" y="140">逃逸分析：对象不会逃出方法？</text>
+    <path class="ed" d="M445,140 L566,140" marker-end="url(#arr6)"/>
+    <text class="el" x="506" y="128">是</text>
+    <rect class="green" x="570" y="117" width="380" height="46" rx="9"/>
+    <text class="t" x="760" y="140">栈上分配 / 标量替换（无需 GC）</text>
+    <path class="ed" d="M280,182 L280,222" marker-end="url(#arr6)"/>
+    <text class="el" x="298" y="204">否</text>
+
+    <polygon class="amber" points="280,226 445,268 280,310 115,268"/>
+    <text class="t" x="280" y="268">是大对象？</text>
+    <path class="ed" d="M445,268 L566,268" marker-end="url(#arr6)"/>
+    <text class="el" x="506" y="256">是</text>
+    <rect class="amber" x="570" y="245" width="380" height="46" rx="9"/>
+    <text class="t" x="760" y="268">直接进入老年代</text>
+    <path class="ed" d="M280,310 L280,346" marker-end="url(#arr6)"/>
+    <text class="el" x="298" y="330">否</text>
+
+    <rect class="blue" x="120" y="348" width="320" height="58" rx="9"/>
+    <text class="t" x="280" y="368">优先在 TLAB 分配</text>
+    <text class="t2" x="280" y="390">TLAB 不足 → CAS 在 Eden 分配</text>
+    <path class="ed" d="M280,406 L280,442" marker-end="url(#arr6)"/>
+
+    <rect class="blue" x="120" y="444" width="320" height="46" rx="9"/>
+    <text class="t" x="280" y="467">在 Eden 区分配成功</text>
+    <path class="ed" d="M280,490 L280,518" marker-end="url(#arr6)"/>
+
+    <rect class="red" x="120" y="520" width="320" height="58" rx="9"/>
+    <text class="t" x="280" y="540">Eden 满 → Minor GC</text>
+    <text class="t2" x="280" y="562">存活对象复制到 Survivor（复制算法）</text>
+    <path class="ed" d="M280,578 L280,606" marker-end="url(#arr6)"/>
+
+    <polygon class="amber" points="280,610 445,652 280,694 115,652"/>
+    <text class="t" x="280" y="646">年龄 ≥ 15 或 Survivor 放不下？</text>
+    <text class="t2" x="280" y="666">-XX:MaxTenuringThreshold</text>
+    <path class="ed" d="M445,652 L566,652" marker-end="url(#arr6)"/>
+    <text class="el" x="506" y="640">是</text>
+    <rect class="amber" x="570" y="629" width="380" height="46" rx="9"/>
+    <text class="t" x="760" y="652">晋升老年代</text>
+    <path class="ed" d="M280,694 L280,726" marker-end="url(#arr6)"/>
+    <text class="el" x="298" y="710">否</text>
+
+    <rect class="blue" x="120" y="728" width="320" height="46" rx="9"/>
+    <text class="t" x="280" y="751">继续留在 Survivor，年龄 +1</text>
+
+    <path class="ed" d="M120,751 L64,751 L64,549 L114,549" marker-end="url(#arr6)"/>
+    <text class="el" x="52" y="660" transform="rotate(-90 52 660)">每轮 Minor GC 循环</text>
+
+    <rect class="red" x="570" y="728" width="380" height="46" rx="9"/>
+    <text class="t" x="760" y="751">老年代空间不足 → Full GC（STW）</text>
+    <path class="ed" d="M760,675 L760,726" marker-end="url(#arr6)"/>
+  </svg>
+  <figcaption>图 2-2　对象创建到晋升老年代的完整链路</figcaption>
+</figure>
+
+<div class="tip"><b>TLAB 是什么？</b>Thread Local Allocation Buffer，每个线程在 Eden 里预先划走一小块私有区域。对象优先在自己的 TLAB 里分配，<strong>不需要加锁</strong>；TLAB 用完了才走 CAS 向 Eden 申请新的，这样大幅减少指针碰撞的竞争。</div>
+
+<h3>2.3 怎么判断一个对象该回收了</h3>
+
+<p>主流 JVM 都<strong>不用引用计数</strong>（循环引用无法回收），而是用 <strong>可达性分析</strong>：从一组叫 <strong>GC Roots</strong> 的根对象出发，能走到的对象存活，走不到的就是垃圾。</p>
+
+<p><strong>GC Roots 常见有</strong>：虚拟机栈中局部变量表引用的对象、方法区中静态变量引用的对象、常量引用的对象、本地方法栈 JNI 引用的对象、活跃线程、同步锁持有的对象。</p>
+
+<table>
+  <thead><tr><th>引用类型</th><th>回收时机</th><th>典型用途</th></tr></thead>
+  <tbody>
+    <tr><td><strong>强引用</strong> <code>new</code></td><td>永远不会被回收（除非不可达）</td><td>普通对象</td></tr>
+    <tr><td><strong>软引用</strong> SoftReference</td><td><strong>内存不足时</strong>才回收</td><td>缓存</td></tr>
+    <tr><td><strong>弱引用</strong> WeakReference</td><td><strong>下次 GC 一定回收</strong></td><td>ThreadLocal 的 key、WeakHashMap</td></tr>
+    <tr><td><strong>虚引用</strong> PhantomReference</td><td>随时可能被回收，只用于回收通知</td><td>管理直接内存</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 三种回收算法</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 520" role="img" aria-label="垃圾回收算法与 CMS 阶段">
+    <defs>
+      <marker id="arr7" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb7" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr7" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg7" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <!-- 三种算法 -->
+    <rect class="blue" x="30" y="46" width="300" height="104" rx="10"/>
+    <text class="t" x="180" y="70">标记 - 清除</text>
+    <text class="t2" x="180" y="96">先标记垃圾，再直接清除</text>
+    <text class="t2" x="180" y="118">优点：实现简单、不移动对象</text>
+    <text class="t2" x="180" y="140">缺点：产生大量内存碎片</text>
+
+    <rect class="green" x="350" y="46" width="300" height="104" rx="10"/>
+    <text class="t" x="500" y="70">标记 - 复制</text>
+    <text class="t2" x="500" y="96">存活对象整块复制到另一半</text>
+    <text class="t2" x="500" y="118">优点：无碎片、效率高</text>
+    <text class="t2" x="500" y="140">缺点：浪费一半空间 → 用于新生代</text>
+
+    <rect class="purple" x="670" y="46" width="300" height="104" rx="10"/>
+    <text class="t" x="820" y="70">标记 - 整理</text>
+    <text class="t2" x="820" y="96">标记后把存活对象移到一端</text>
+    <text class="t2" x="820" y="118">优点：无碎片</text>
+    <text class="t2" x="820" y="140">缺点：移动对象成本高 → 用于老年代</text>
+
+    <!-- CMS 时间线 -->
+    <text class="lh" x="30" y="196">CMS 四个阶段（目标：最短停顿）</text>
+    <line x1="60" y1="290" x2="940" y2="290" stroke="#d6dbe5" stroke-width="2"/>
+
+    <rect class="red" x="60" y="262" width="110" height="56" rx="7"/>
+    <text class="t" x="115" y="282">初始标记</text>
+    <text class="t2" x="115" y="302">STW</text>
+
+    <rect class="blue" x="170" y="262" width="350" height="56" rx="7"/>
+    <text class="t" x="345" y="282">并发标记</text>
+    <text class="t2" x="345" y="302">与用户线程并发，耗时最长</text>
+
+    <rect class="red" x="520" y="262" width="120" height="56" rx="7"/>
+    <text class="t" x="580" y="282">重新标记</text>
+    <text class="t2" x="580" y="302">STW</text>
+
+    <rect class="blue" x="640" y="262" width="300" height="56" rx="7"/>
+    <text class="t" x="790" y="282">并发清除</text>
+    <text class="t2" x="790" y="302">与用户线程并发</text>
+
+    <text class="t2" x="115" y="348">只标记 GC Roots</text>
+    <text class="t2" x="115" y="366">直接关联的对象</text>
+    <text class="t2" x="345" y="348">从 GC Roots 遍历</text>
+    <text class="t2" x="345" y="366">整个对象图</text>
+    <text class="t2" x="580" y="348">修正并发期间</text>
+    <text class="t2" x="580" y="366">变动的引用</text>
+    <text class="t2" x="790" y="348">清理垃圾对象</text>
+    <text class="t2" x="790" y="366">不移动存活对象</text>
+
+    <rect class="red" x="30" y="398" width="460" height="96" rx="9"/>
+    <text class="t" x="260" y="420">CMS 的两个坑</text>
+    <text class="t2" x="260" y="446">① 标记-清除产生内存碎片，大对象放不下时</text>
+    <text class="t2" x="260" y="466">　 会提前触发 Full GC（Serial Old 做整理）</text>
+    <text class="t2" x="260" y="486">② 并发期间用户线程仍在分配，老年代填满即</text>
+    <text class="t2" x="260" y="506">　 Concurrent Mode Failure</text>
+
+    <rect class="green" x="510" y="398" width="460" height="96" rx="9"/>
+    <text class="t" x="740" y="420">G1 的改进（JDK9 默认）</text>
+    <text class="t2" x="740" y="446">堆划分为多个 Region，按「回收收益」优先回收</text>
+    <text class="t2" x="740" y="466">支持 -XX:MaxGCPauseMillis 设置预期停顿目标</text>
+    <text class="t2" x="740" y="486">整体是标记-整理，局部（Region 间）是复制算法</text>
+    <text class="t2" x="740" y="506">兼顾吞吐与停顿，不需要连续的大内存空间</text>
+  </svg>
+  <figcaption>图 2-3　三种回收算法与 CMS 的四阶段时间线</figcaption>
+</figure>
+
+<h3>2.5 垃圾收集器一览</h3>
+
+<table>
+  <thead><tr><th>收集器</th><th>分代</th><th>算法</th><th>特点</th></tr></thead>
+  <tbody>
+    <tr><td>Serial</td><td>新生代</td><td>复制</td><td>单线程，客户端模式，简单高效</td></tr>
+    <tr><td>ParNew</td><td>新生代</td><td>复制</td><td>Serial 的多线程版，常与 CMS 搭配</td></tr>
+    <tr><td><strong>Parallel Scavenge</strong></td><td>新生代</td><td>复制</td><td><strong>吞吐量优先</strong>，JDK8 默认</td></tr>
+    <tr><td>Serial Old / Parallel Old</td><td>老年代</td><td>标记-整理</td><td>分别对应上面的单线程 / 多线程版本</td></tr>
+    <tr><td><strong>CMS</strong></td><td>老年代</td><td>标记-清除</td><td><strong>停顿优先</strong>，有碎片，JDK9 起废弃</td></tr>
+    <tr><td><strong>G1</strong></td><td>整堆</td><td>Region + 标记整理/复制</td><td><strong>可预测停顿</strong>，JDK9 起默认</td></tr>
+    <tr><td>ZGC</td><td>整堆</td><td>染色指针 + 读屏障</td><td>STW &lt; 1ms，支持 TB 级堆</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>一句话选型：</b>要吞吐量（批处理）选 Parallel；要低延迟（Web 服务）选 G1 或 ZGC。CMS 已是历史，但<strong>它的四阶段模型和「并发模式失败」仍然是最高频的考点</strong>。</div>
+
+<h3>2.6 类加载机制</h3>
+
+<h4>加载的五个阶段</h4>
+
+<p><strong>加载 → 验证 → 准备 → 解析 → 初始化</strong></p>
+
+<ul>
+  <li><strong>准备</strong>：为静态变量分配内存并赋<strong>零值</strong>（<code>static int a = 10</code> 此时 a 是 0，不是 10）。</li>
+  <li><strong>解析</strong>：把常量池的符号引用替换为直接引用。</li>
+  <li><strong>初始化</strong>：执行 <code>&lt;clinit&gt;</code>，此时才真正赋值 10。父类先于子类，多个线程访问时加锁保证只执行一次。</li>
+</ul>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 400" role="img" aria-label="双亲委派模型">
+    <defs>
+      <marker id="arr8" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb8" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr8" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg8" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="purple" x="300" y="30" width="400" height="56" rx="10"/>
+    <text class="t" x="500" y="50">Bootstrap ClassLoader</text>
+    <text class="t2" x="500" y="70">加载 JAVA_HOME/lib 下的核心类库（C++ 实现，Java 里为 null）</text>
+
+    <rect class="blue" x="300" y="104" width="400" height="56" rx="10"/>
+    <text class="t" x="500" y="124">Platform ClassLoader（旧版 ExtClassLoader）</text>
+    <text class="t2" x="500" y="144">加载 JDK 的扩展模块</text>
+
+    <rect class="green" x="300" y="178" width="400" height="56" rx="10"/>
+    <text class="t" x="500" y="198">App ClassLoader</text>
+    <text class="t2" x="500" y="218">加载 classpath 上的类和依赖 jar</text>
+
+    <rect class="amber" x="300" y="252" width="400" height="56" rx="10"/>
+    <text class="t" x="500" y="272">自定义 ClassLoader</text>
+    <text class="t2" x="500" y="292">重写 findClass，实现热部署、加密类加载</text>
+
+    <path class="edb" d="M272,272 L272,58" marker-end="url(#arrb8)"/>
+    <text class="el" x="150" y="150" transform="rotate(-90 150 150)">loadClass 向上委派</text>
+
+    <path class="edg" d="M728,58 L728,272" marker-end="url(#arrg8)"/>
+    <text class="el" x="852" y="150" transform="rotate(90 852 150)">父类加载不了，才自己加载</text>
+
+    <rect class="gray" x="30" y="330" width="940" height="54" rx="9"/>
+    <text class="t" x="500" y="350">好处：① 安全，防止自定义类冒充 java.lang.String；② 避免同一个类被重复加载</text>
+    <text class="t2" x="500" y="370">打破场景：SPI（JDBC 用线程上下文类加载器）、Tomcat 的 WebApp 隔离、OSGi、热部署</text>
+  </svg>
+  <figcaption>图 2-4　双亲委派模型与打破场景</figcaption>
+</figure>
+
+<div class="tip"><b>「打破双亲委派」怎么答才不掉分？</b>标准套路是：双亲委派要求<strong>向上</strong>，但 SPI 机制（比如 JDBC 的 Driver）要求<strong>父加载器去调用子加载器加载的实现类</strong>，方向反了。解决办法是 <code>Thread.currentThread().getContextClassLoader()</code> 拿到线程上下文类加载器，用它来加载。Tomcat 则是为了<strong>应用隔离</strong>，让每个 webapp 有自己的 ClassLoader，优先加载自己的类。</div>
+
+<h3>2.7 线上排查实战</h3>
+
+<h4>常用参数</h4>
+
+<pre class="code">-Xms2g -Xmx2g                      <span class="c"># 堆初始/最大，生产建议设置成相等，避免动态扩缩容抖动</span>
+-Xmn1g                             <span class="c"># 新生代大小</span>
+-Xss512k                           <span class="c"># 线程栈大小</span>
+-XX:MetaspaceSize=256m             <span class="c"># 元空间初始阈值</span>
+-XX:MaxMetaspaceSize=512m
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200           <span class="c"># G1 预期停顿目标</span>
+-XX:+HeapDumpOnOutOfMemoryError    <span class="c"># OOM 时自动 dump，排查必备</span>
+-XX:HeapDumpPath=/data/dump/</pre>
+
+<h4>CPU 飙高的排查流程（高频实战题）</h4>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 240" role="img" aria-label="CPU 飙高排查流程">
+    <defs>
+      <marker id="arr9" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb9" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr9" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg9" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="20" y="60" width="160" height="60" rx="9"/>
+    <text class="tm" x="100" y="80">top</text>
+    <text class="t2" x="100" y="102">找到高 CPU 的 pid</text>
+    <path class="ed" d="M180,90 L212,90" marker-end="url(#arr9)"/>
+
+    <rect class="blue" x="214" y="60" width="170" height="60" rx="9"/>
+    <text class="tm" x="299" y="80">top -Hp pid</text>
+    <text class="t2" x="299" y="102">找到高 CPU 的 tid</text>
+    <path class="ed" d="M384,90 L416,90" marker-end="url(#arr9)"/>
+
+    <rect class="blue" x="418" y="60" width="170" height="60" rx="9"/>
+    <text class="tm" x="503" y="80">printf "%x" tid</text>
+    <text class="t2" x="503" y="102">线程号转 16 进制</text>
+    <path class="ed" d="M588,90 L620,90" marker-end="url(#arr9)"/>
+
+    <rect class="blue" x="622" y="60" width="180" height="60" rx="9"/>
+    <text class="tm" x="712" y="78">jstack pid</text>
+    <text class="t2" x="712" y="100">grep -A 30 0xTID</text>
+    <path class="ed" d="M802,90 L834,90" marker-end="url(#arr9)"/>
+
+    <rect class="green" x="836" y="60" width="146" height="60" rx="9"/>
+    <text class="t" x="909" y="82">定位到代码行</text>
+    <text class="t2" x="909" y="104">分析并修复</text>
+
+    <rect class="amber" x="20" y="150" width="962" height="70" rx="9"/>
+    <text class="t" x="500" y="172">更快的办法：直接上 Arthas</text>
+    <text class="t2" x="500" y="196">thread -n 3（看最忙的 3 个线程栈）  |  thread -b（找死锁）  |  dashboard（实时概览）</text>
+  </svg>
+  <figcaption>图 2-5　线上 CPU 飙高的定位路径</figcaption>
+</figure>
+
+<h4>常见 OOM 类型与含义</h4>
+
+<table>
+  <thead><tr><th>报错信息</th><th>含义</th><th>常见原因</th></tr></thead>
+  <tbody>
+    <tr><td>Java heap space</td><td>堆内存不足</td><td>内存泄漏、大对象、查询未分页</td></tr>
+    <tr><td>GC overhead limit exceeded</td><td>GC 花了 98% 时间却只回收了不到 2%</td><td>堆太小或对象几乎全存活</td></tr>
+    <tr><td>Metaspace</td><td>元空间不足</td><td>类加载过多（动态代理、热部署反复加载）</td></tr>
+    <tr><td>Direct buffer memory</td><td>直接内存不足</td><td>NIO 未释放，<code>-XX:MaxDirectMemorySize</code> 太小</td></tr>
+    <tr><td>unable to create new native thread</td><td>无法创建线程</td><td>线程数超系统限制，栈太大</td></tr>
+  </tbody>
+</table>
+
+<h3>2.8 高频追问速答</h3>
+
+<div class="qa"><b>Q：Minor GC / Major GC / Full GC 区别？</b><br>
+A：Minor GC 只回收新生代（频繁、快）；Major/Old GC 回收老年代；Full GC 回收整个堆（含元空间、直接内存），<strong>STW 时间长，要尽量避免</strong>。</div>
+
+<div class="qa"><b>Q：什么情况下对象直接进老年代？</b><br>
+A：三种 —— 大对象超过阈值、Survivor 空间不足时的<strong>分配担保</strong>、动态年龄判定（Survivor 中相同年龄对象总和超过一半）。</div>
+
+<div class="qa"><b>Q：CMS 为什么不用标记-整理？</b><br>
+A：整理需要移动对象，必须 STW，就达不到「低停顿」这个设计目标了。代价就是碎片。</div>
+
+<div class="qa"><b>Q：G1 和 CMS 的本质区别？</b><br>
+A：CMS 按<strong>物理分代</strong>回收，G1 按 <strong>Region 逻辑分代</strong>，可以按回收收益排序、设置停顿目标，且用<strong>整体整理 + 局部复制</strong>避免了碎片问题。</div>
+
+<div class="qa"><b>Q：怎么排查内存泄漏？</b><br>
+A：<code>-XX:+HeapDumpOnOutOfMemoryError</code> 拿到 dump，用 MAT 打开，看 <strong>Dominator Tree / Leak Suspects</strong>，定位到「谁持有大对象的引用链」；在线可以用 Arthas 的 <code>heapdump</code> 或 <code>vmtool</code> 直接取。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 3 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s3">
+<h2 class="ch"><small>第 3 章</small>JUC 并发工具</h2>
+
+<p>JUC 的题有个特点：<strong>答对概念不难，答出「为什么这么设计」才加分</strong>。这一章的主线是 AQS —— 把 AQS 讲清楚，ReentrantLock、Semaphore、CountDownLatch 全都是同一套逻辑的变体。</p>
+
+<h3>3.1 AQS：整个 JUC 的地基</h3>
+
+<div class="key"><b>一句话定义：</b>AQS（AbstractQueuedSynchronizer）= 一个 <strong>volatile 的 state</strong> + 一个 <strong>FIFO 双向等待队列</strong>。抢资源就是改 state，抢不到就排队等待。</div>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 520" role="img" aria-label="AQS 结构与同步队列">
+    <defs>
+      <marker id="arr10" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb10" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr10" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg10" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="30" y="30" width="190" height="50" rx="9"/>
+    <text class="tm" x="125" y="55">lock()</text>
+    <path class="ed" d="M220,55 L246,55" marker-end="url(#arr10)"/>
+
+    <rect class="blue" x="248" y="30" width="232" height="50" rx="9"/>
+    <text class="t" x="364" y="55">tryAcquire：CAS 修改 state</text>
+    <path class="ed" d="M480,55 L506,55" marker-end="url(#arr10)"/>
+    <text class="el" x="493" y="43">成功</text>
+    <rect class="green" x="508" y="30" width="200" height="50" rx="9"/>
+    <text class="t" x="608" y="55">拿到锁，继续执行</text>
+
+    <path class="ed" d="M364,80 L364,132 L506,132" marker-end="url(#arr10)"/>
+    <text class="el" x="420" y="120">失败</text>
+    <rect class="amber" x="508" y="107" width="200" height="50" rx="9"/>
+    <text class="t" x="608" y="132">封装成 Node 入队</text>
+    <path class="ed" d="M608,157 L608,196" marker-end="url(#arr10)"/>
+    <text class="el" x="660" y="178">LockSupport.park() 挂起</text>
+
+    <rect class="purple" x="30" y="107" width="450" height="50" rx="9"/>
+    <text class="t" x="255" y="124">volatile int state</text>
+    <text class="t2" x="255" y="144">独占模式：0 = 空闲，&gt;0 = 已占用（值即重入次数）　共享模式：剩余许可数</text>
+
+    <text class="lh" x="30" y="226">同步队列：CLH 变体的双向链表，抢不到锁的线程在这里排队</text>
+
+    <rect class="gray" x="30" y="248" width="160" height="76" rx="9"/>
+    <text class="t" x="110" y="272">head</text>
+    <text class="t2" x="110" y="294">哨兵节点</text>
+    <text class="t2" x="110" y="312">（已持有锁）</text>
+
+    <rect class="blue" x="220" y="248" width="160" height="76" rx="9"/>
+    <text class="t" x="300" y="272">Node</text>
+    <text class="t2" x="300" y="294">线程 A</text>
+    <text class="t2" x="300" y="312">WAITING</text>
+
+    <rect class="blue" x="410" y="248" width="160" height="76" rx="9"/>
+    <text class="t" x="490" y="272">Node</text>
+    <text class="t2" x="490" y="294">线程 B</text>
+    <text class="t2" x="490" y="312">WAITING</text>
+
+    <rect class="blue" x="600" y="248" width="160" height="76" rx="9"/>
+    <text class="t" x="680" y="272">Node</text>
+    <text class="t2" x="680" y="294">线程 C</text>
+    <text class="t2" x="680" y="312">WAITING</text>
+
+    <rect class="box" x="790" y="248" width="150" height="76" rx="9" stroke-dasharray="5 4"/>
+    <text class="t" x="865" y="272">tail</text>
+    <text class="t2" x="865" y="294">新节点从尾部入队</text>
+
+    <path class="ed" d="M190,264 L216,264" marker-end="url(#arr10)"/>
+    <path class="ed" d="M216,308 L194,308" marker-end="url(#arr10)"/>
+    <path class="ed" d="M380,264 L406,264" marker-end="url(#arr10)"/>
+    <path class="ed" d="M406,308 L384,308" marker-end="url(#arr10)"/>
+    <path class="ed" d="M570,264 L596,264" marker-end="url(#arr10)"/>
+    <path class="ed" d="M596,308 L574,308" marker-end="url(#arr10)"/>
+    <path class="ed" d="M760,264 L786,264" marker-end="url(#arr10)"/>
+    <path class="ed" d="M786,308 L764,308" marker-end="url(#arr10)"/>
+    <text class="t2" x="490" y="348">上排箭头是 next 指针，下排是 prev 指针 —— 双向链表支持从任意节点取消等待</text>
+
+    <rect class="amber" x="30" y="378" width="940" height="126" rx="9"/>
+    <text class="t" x="500" y="402">AQS 的三个关键设计</text>
+    <text class="t2" x="60" y="430">① 模板方法模式：「怎么抢」交给子类（tryAcquire / tryRelease），「抢不到怎么办」留在 AQS（入队、park、唤醒）</text>
+    <text class="t2" x="60" y="454">② 入队后不会立刻 park，而是先自旋两次，避免刚入队锁就被释放导致的线程切换开销</text>
+    <text class="t2" x="60" y="478">③ 释放锁时唤醒 head.next，被唤醒的线程需要重新竞争，而不是直接获得锁 —— 这正是默认非公平的来源</text>
+    <text class="t2" x="60" y="498">（公平锁就是在 tryAcquire 里先判断「队列里有没有更早的等待者」）</text>
+  </svg>
+  <figcaption>图 3-1　AQS 的状态位与同步队列</figcaption>
+</figure>
+
+<h4>自己写一个锁，只要实现两个方法</h4>
+
+<ul>
+  <li>继承 <code>AbstractQueuedSynchronizer</code>，实现 <code>tryAcquire(int)</code> 和 <code>tryRelease(int)</code>。</li>
+  <li><code>tryAcquire</code> 里用 <code>compareAndSetState(0, 1)</code> 抢资源，成功设置 <code>setExclusiveOwnerThread</code> 并返回 true，失败返回 false。</li>
+  <li><code>tryRelease</code> 里清空持有线程并 <code>setState(0)</code>，返回 true。</li>
+  <li>对外暴露 <code>lock()</code> 调 <code>acquire(1)</code>，<code>unlock()</code> 调 <code>release(1)</code> —— 这两个是 final 模板方法，<strong>入队、park、唤醒全都由 AQS 兜底</strong>。</li>
+</ul>
+
+<h4>独占 vs 共享</h4>
+
+<table>
+  <thead><tr><th>模式</th><th>state 语义</th><th>代表实现</th></tr></thead>
+  <tbody>
+    <tr><td><strong>独占</strong></td><td>0 空闲，&gt;0 表示被当前线程重入了几次</td><td>ReentrantLock、ReadWriteLock 的写锁</td></tr>
+    <tr><td><strong>共享</strong></td><td>表示可用许可数量，获取时递减</td><td>Semaphore、CountDownLatch、ReadWriteLock 的读锁</td></tr>
+  </tbody>
+</table>
+
+<h3>3.2 synchronized 与锁升级</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 320" role="img" aria-label="synchronized 锁升级">
+    <defs>
+      <marker id="arr11" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb11" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr11" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg11" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="gray" x="30" y="60" width="210" height="58" rx="9"/>
+    <text class="t" x="135" y="82">无锁</text>
+    <text class="t2" x="135" y="104">普通对象</text>
+    <path class="ed" d="M240,89 L264,89" marker-end="url(#arr11)"/>
+
+    <rect class="blue" x="266" y="60" width="210" height="58" rx="9"/>
+    <text class="t" x="371" y="82">偏向锁</text>
+    <text class="t2" x="371" y="104">只有一个线程访问</text>
+    <path class="ed" d="M476,89 L500,89" marker-end="url(#arr11)"/>
+
+    <rect class="amber" x="502" y="60" width="210" height="58" rx="9"/>
+    <text class="t" x="607" y="82">轻量级锁</text>
+    <text class="t2" x="607" y="104">线程交替执行，CAS 自旋</text>
+    <path class="ed" d="M712,89 L736,89" marker-end="url(#arr11)"/>
+
+    <rect class="red" x="738" y="60" width="230" height="58" rx="9"/>
+    <text class="t" x="853" y="82">重量级锁</text>
+    <text class="t2" x="853" y="104">竞争激烈，OS 互斥量挂起</text>
+
+    <text class="t2" x="135" y="150">Mark Word 无锁状态</text>
+    <text class="t2" x="371" y="150">Mark Word 记录线程 ID</text>
+    <text class="t2" x="371" y="170">同一线程直接进入，零开销</text>
+    <text class="t2" x="607" y="150">栈帧建 Lock Record</text>
+    <text class="t2" x="607" y="170">CAS 把 Mark Word 指向它</text>
+    <text class="t2" x="853" y="150">关联 Monitor 对象</text>
+    <text class="t2" x="853" y="170">线程真正被阻塞，不再空转</text>
+
+    <path class="ed" d="M853,196 L853,224" marker-end="url(#arr11)"/>
+    <rect class="red" x="700" y="226" width="300" height="46" rx="9"/>
+    <text class="t" x="850" y="249">自旋消耗 CPU，但避免了线程切换</text>
+
+    <rect class="amber" x="30" y="226" width="640" height="76" rx="9"/>
+    <text class="t" x="350" y="248">记忆口诀</text>
+    <text class="t2" x="50" y="272">偏向锁「认定一个人」→ 轻量级锁「先转几圈试试」→ 重量级锁「转不动了就挂起」</text>
+    <text class="t2" x="50" y="292">锁升级单向不可逆；JDK15 起偏向锁默认关闭（撤销成本高、收益有限）</text>
+  </svg>
+  <figcaption>图 3-2　synchronized 的锁升级路径</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th>对比项</th><th>synchronized</th><th>ReentrantLock</th></tr></thead>
+  <tbody>
+    <tr><td>实现层面</td><td>JVM 关键字（字节码指令）</td><td>JDK API（基于 AQS）</td></tr>
+    <tr><td>释放方式</td><td><strong>自动释放</strong>，异常也会释放</td><td><strong>必须手动 unlock</strong>，放在 finally</td></tr>
+    <tr><td>可中断</td><td>不支持</td><td>支持 lockInterruptibly()</td></tr>
+    <tr><td>超时</td><td>不支持</td><td>支持 tryLock(timeout)</td></tr>
+    <tr><td>公平性</td><td>只能非公平</td><td>可选公平 / 非公平</td></tr>
+    <tr><td>条件队列</td><td>只有一个 wait / notify</td><td>可创建多个 Condition</td></tr>
+  </tbody>
+</table>
+
+<h3>3.3 CAS：无锁的基石</h3>
+
+<p>CAS（Compare And Swap）的思想是：<strong>「我认为现在应该是 A，如果是，就改成 B」</strong>。比较和交换是一步原子操作，由 CPU 指令保证。Java 里通过 <code>Unsafe.compareAndSwapInt</code> 暴露出来。</p>
+
+<table>
+  <thead><tr><th>问题</th><th>说明</th><th>解法</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ABA 问题</strong></td><td>值从 A 改成 B 又改回 A，CAS 察觉不到中间的变化</td><td>加版本号：AtomicStampedReference</td></tr>
+    <tr><td><strong>自旋开销</strong></td><td>长时间抢不到会一直空转，浪费 CPU</td><td>用 LongAdder 分散热点，或退化成锁</td></tr>
+    <tr><td><strong>只能保证一个变量</strong></td><td>无法原子地更新多个变量</td><td>封装成对象用 AtomicReference</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>面试延伸：</b>为什么 JDK8 还要引入 <code>LongAdder</code>？因为高并发下所有线程 CAS 同一个 <code>value</code>，失败重试极多；LongAdder 把值<strong>分散到多个 Cell</strong>，各线程各改各的，只有求和时才汇总。</div>
+
+<h3>3.4 并发工具：三个最容易混的类</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 340" role="img" aria-label="CountDownLatch 与 CyclicBarrier">
+    <defs>
+      <marker id="arr12" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb12" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr12" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg12" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="30" y="30">CountDownLatch：一个线程等多个线程（一次性）</text>
+    <rect class="blue" x="50" y="48" width="120" height="44" rx="9"/>
+    <text class="t" x="110" y="70">任务 T1</text>
+    <rect class="blue" x="190" y="48" width="120" height="44" rx="9"/>
+    <text class="t" x="250" y="70">任务 T2</text>
+    <rect class="blue" x="330" y="48" width="120" height="44" rx="9"/>
+    <text class="t" x="390" y="70">任务 T3</text>
+
+    <path class="ed" d="M110,92 L110,126" marker-end="url(#arr12)"/>
+    <path class="ed" d="M250,92 L250,126" marker-end="url(#arr12)"/>
+    <path class="ed" d="M390,92 L390,126" marker-end="url(#arr12)"/>
+
+    <rect class="amber" x="50" y="128" width="400" height="48" rx="9"/>
+    <text class="t" x="250" y="152">countDown()：3 → 2 → 1 → 0</text>
+    <path class="ed" d="M250,176 L250,210" marker-end="url(#arr12)"/>
+    <rect class="green" x="130" y="212" width="240" height="48" rx="9"/>
+    <text class="t" x="250" y="236">主线程 await() 被唤醒</text>
+    <text class="t2" x="255" y="296">计数归零后不可重置 → 只能使用一次</text>
+
+    <path class="ed" d="M500,20 L500,320" stroke-dasharray="4 6"/>
+
+    <text class="lh" x="530" y="30">CyclicBarrier：多个线程互相等（可循环）</text>
+    <rect class="blue" x="540" y="52" width="110" height="44" rx="9"/>
+    <text class="t" x="595" y="74">线程 T1</text>
+    <rect class="blue" x="540" y="122" width="110" height="44" rx="9"/>
+    <text class="t" x="595" y="144">线程 T2</text>
+    <rect class="blue" x="540" y="192" width="110" height="44" rx="9"/>
+    <text class="t" x="595" y="214">线程 T3</text>
+
+    <path class="ed" d="M650,74 L692,74" marker-end="url(#arr12)"/>
+    <path class="ed" d="M650,144 L692,144" marker-end="url(#arr12)"/>
+    <path class="ed" d="M650,214 L692,214" marker-end="url(#arr12)"/>
+
+    <line x1="700" y1="52" x2="700" y2="234" stroke="#7a5af8" stroke-width="6" stroke-linecap="round"/>
+    <text class="t2" x="700" y="42">Barrier</text>
+
+    <path class="ed" d="M706,144 L752,144" marker-end="url(#arr12)"/>
+    <rect class="green" x="754" y="120" width="210" height="48" rx="9"/>
+    <text class="t" x="859" y="144">全部到齐，一起继续</text>
+    <text class="t2" x="760" y="296">每轮结束后自动重置，可重复使用</text>
+  </svg>
+  <figcaption>图 3-3　CountDownLatch 与 CyclicBarrier 的语义差别</figcaption>
+</figure>
+
+<p><strong>一句话区分</strong>：CountDownLatch 是<strong>「等人到齐再开始，等一次就废」</strong>；CyclicBarrier 是<strong>「大家互相等，到齐了一起走，还能再来一轮」</strong>。</p>
+
+<table>
+  <thead><tr><th>工具</th><th>作用</th><th>可重用</th><th>典型场景</th></tr></thead>
+  <tbody>
+    <tr><td><strong>CountDownLatch</strong></td><td>一个线程等 N 个线程完成</td><td>否</td><td>接口聚合、多任务汇总后计算</td></tr>
+    <tr><td><strong>CyclicBarrier</strong></td><td>N 个线程互相等待到齐</td><td>是</td><td>分阶段计算、压测起点对齐</td></tr>
+    <tr><td><strong>Semaphore</strong></td><td>控制同时访问的线程数量</td><td>是</td><td>限流、资源池</td></tr>
+    <tr><td><strong>Exchanger</strong></td><td>两个线程交换数据</td><td>是</td><td>遗传算法、流水线</td></tr>
+    <tr><td><strong>Phaser</strong></td><td>更灵活的多阶段同步</td><td>是</td><td>复杂分阶段任务</td></tr>
+  </tbody>
+</table>
+
+<h3>3.5 ThreadLocal 与内存泄漏</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 400" role="img" aria-label="ThreadLocal 内存结构">
+    <defs>
+      <marker id="arr13" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb13" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr13" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg13" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="30" y="60" width="170" height="76" rx="9"/>
+    <text class="t" x="115" y="86">Thread</text>
+    <text class="t2" x="115" y="110">存活期很长</text>
+
+    <path class="ed" d="M200,98 L242,98" marker-end="url(#arr13)"/>
+    <text class="el" x="221" y="86">持有</text>
+
+    <rect class="green" x="244" y="60" width="212" height="76" rx="9"/>
+    <text class="t" x="350" y="86">ThreadLocalMap</text>
+    <text class="tm" x="350" y="110">threadLocals</text>
+
+    <path class="ed" d="M456,98 L498,98" marker-end="url(#arr13)"/>
+    <text class="el" x="477" y="86">持有</text>
+
+    <rect class="gray" x="500" y="30" width="472" height="150" rx="10"/>
+    <text class="t" x="736" y="54">ThreadLocalMap.Entry[]</text>
+
+    <rect class="red" x="520" y="70" width="190" height="70" rx="9" stroke-dasharray="5 4"/>
+    <text class="t" x="615" y="92">key</text>
+    <text class="t2" x="615" y="114">弱引用 → ThreadLocal</text>
+
+    <rect class="red" x="740" y="70" width="212" height="70" rx="9"/>
+    <text class="t" x="846" y="92">value</text>
+    <text class="t2" x="846" y="114">强引用 → 业务对象</text>
+
+    <text class="t2" x="736" y="164">Entry 只把 key 做成弱引用，value 仍是强引用</text>
+
+    <rect class="amber" x="30" y="206" width="460" height="176" rx="10"/>
+    <text class="t" x="260" y="230">泄漏是怎么发生的</text>
+    <text class="t2" x="50" y="258">① ThreadLocal 对象没有其他强引用了</text>
+    <text class="t2" x="50" y="282">② 下一次 GC 把弱引用的 key 回收 → key 变成 null</text>
+    <text class="t2" x="50" y="306">③ 但 value 被 Entry 强引用，Entry 又被 Thread 引用</text>
+    <text class="t2" x="50" y="330">④ 线程池里的 Thread 长期存活 → value 永远无法回收</text>
+    <text class="t2" x="50" y="360">结果：key 为 null 的「僵尸 Entry」不断堆积</text>
+
+    <rect class="green" x="510" y="206" width="462" height="176" rx="10"/>
+    <text class="t" x="741" y="230">正确用法</text>
+    <text class="t2" x="530" y="258">① 用完必须 remove()，放在 finally 里最稳妥</text>
+    <text class="t2" x="530" y="282">② 声明成 static final，让 key 一直有强引用</text>
+    <text class="t2" x="530" y="306">③ 线程池场景尤其要注意，线程复用会带走上一轮残留</text>
+    <text class="t2" x="530" y="330">④ set 时会顺带清理 key 为 null 的 Entry，但不能依赖</text>
+    <text class="t2" x="530" y="360">⑤ 需要跨线程传递时，才考虑 InheritableThreadLocal</text>
+  </svg>
+  <figcaption>图 3-4　ThreadLocal 的引用链与泄漏成因</figcaption>
+</figure>
+
+<div class="key"><b>为什么 key 用弱引用？</b>这是一种<strong>兜底设计</strong>：如果 key 是强引用，只要 Thread 活着，ThreadLocal 对象就永远回收不掉，泄漏会变成必然。用弱引用后，至少外部没有引用时 key 能被回收。但 value 的回收<strong>只能靠 remove()</strong>。</div>
+
+<h3>3.6 其他高频并发容器</h3>
+
+<table>
+  <thead><tr><th>容器</th><th>原理</th><th>适用场景</th></tr></thead>
+  <tbody>
+    <tr><td><strong>CopyOnWriteArrayList</strong></td><td>写时<strong>复制整个数组</strong>再替换引用，读操作完全无锁</td><td>读多写极少，如配置、监听器列表</td></tr>
+    <tr><td><strong>ConcurrentLinkedQueue</strong></td><td>CAS 实现的无界非阻塞队列</td><td>高并发且不需要阻塞</td></tr>
+    <tr><td><strong>ArrayBlockingQueue</strong></td><td>数组 + 单锁 + 两个 Condition，<strong>有界</strong></td><td>线程池指定容量，生产推荐</td></tr>
+    <tr><td><strong>LinkedBlockingQueue</strong></td><td>链表 + 两把锁（put / take 分离），默认容量约 21 亿</td><td>注意：默认近似无界，容易积压</td></tr>
+    <tr><td><strong>SynchronousQueue</strong></td><td>不存储元素，生产者必须等到消费者接手</td><td>直接交接，如 CachedThreadPool</td></tr>
+    <tr><td><strong>ConcurrentSkipListMap</strong></td><td>跳表实现的有序并发 Map</td><td>需要并发 + 排序</td></tr>
+  </tbody>
+</table>
+
+<h3>3.7 高频追问速答</h3>
+
+<div class="qa"><b>Q：AQS 为什么用双向队列而不是单向？</b><br>
+A：需要支持<strong>从中间取消</strong>。线程等待超时或被打断时要从队列中摘掉自己，双向链表才能 O(1) 找到前驱。</div>
+
+<div class="qa"><b>Q：ReentrantLock 默认公平还是非公平？为什么？</b><br>
+A：<strong>非公平</strong>。非公平锁允许刚到的线程直接尝试抢锁，省掉一次线程唤醒的上下文切换，<strong>吞吐量更高</strong>；代价是可能出现饥饿。</div>
+
+<div class="qa"><b>Q：synchronized 和 volatile 的区别？</b><br>
+A：volatile 只保证<strong>可见性和有序性</strong>，不保证原子性；synchronized 三者都保证。volatile 靠内存屏障实现，开销比锁小得多。</div>
+
+<div class="qa"><b>Q：ThreadLocal 会传给子线程吗？</b><br>
+A：不会。<strong>InheritableThreadLocal</strong> 会在创建子线程时把父线程的值复制一份过去，但它是<strong>拷贝</strong>，父子线程后续修改互不影响。线程池里因为线程复用，用它会串数据。</div>
+
+<div class="qa"><b>Q：为什么 CopyOnWriteArrayList 读快写慢？</b><br>
+A：读没有任何锁和同步，直接读数组；写要<strong>整体复制一份数组</strong>（O(n)）再替换 volatile 引用，内存占用瞬时翻倍。所以只适合读多写极少的场景。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 4 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s4">
+<h2 class="ch"><small>第 4 章</small>线程池</h2>
+
+<p>线程池是极少数「既能问原理、又能问实战」的知识点。面试官通常从「七个参数」切入，再用「为什么不用 Executors」和「参数怎么定」来判断你有没有真正在生产环境用过。</p>
+
+<h3>4.1 为什么要用线程池</h3>
+
+<ul>
+  <li><strong>降低资源消耗</strong>：线程的创建和销毁都有成本，复用线程避免频繁开销。</li>
+  <li><strong>提高响应速度</strong>：任务到达时线程已经存在，可以直接执行。</li>
+  <li><strong>提高可管理性</strong>：可以统一控制并发数、排队策略、监控与调优。</li>
+</ul>
+
+<h3>4.2 ThreadPoolExecutor 的七个参数</h3>
+
+<table>
+  <thead><tr><th>参数</th><th>含义</th><th>注意点</th></tr></thead>
+  <tbody>
+    <tr><td><strong>corePoolSize</strong></td><td>核心线程数</td><td>默认即使空闲也常驻（除非开启 allowCoreThreadTimeOut）</td></tr>
+    <tr><td><strong>maximumPoolSize</strong></td><td>最大线程数</td><td>核心 + 非核心的总上限</td></tr>
+    <tr><td><strong>keepAliveTime</strong></td><td>非核心线程空闲存活时间</td><td>超时后被回收</td></tr>
+    <tr><td><strong>unit</strong></td><td>时间单位</td><td>配合 keepAliveTime</td></tr>
+    <tr><td><strong>workQueue</strong></td><td>任务队列</td><td>选无界队列会让 maximumPoolSize <strong>失效</strong></td></tr>
+    <tr><td><strong>threadFactory</strong></td><td>线程工厂</td><td>生产必改，起有意义的线程名便于排查</td></tr>
+    <tr><td><strong>handler</strong></td><td>拒绝策略</td><td>默认抛异常，生产多为自定义</td></tr>
+  </tbody>
+</table>
+
+<h3>4.3 执行流程：这是本章最该背下来的一张图</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 720" role="img" aria-label="线程池执行流程">
+    <defs>
+      <marker id="arr14" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb14" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr14" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg14" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="110" y="18" width="340" height="46" rx="9"/>
+    <text class="tm" x="280" y="41">execute(task)</text>
+    <path class="ed" d="M280,64 L280,92" marker-end="url(#arr14)"/>
+
+    <polygon class="amber" points="280,96 460,140 280,184 100,140"/>
+    <text class="t" x="280" y="132">核心线程数 &lt; corePoolSize ?</text>
+    <text class="t2" x="280" y="152">workerCount &lt; core</text>
+    <path class="ed" d="M460,140 L594,140" marker-end="url(#arr14)"/>
+    <text class="el" x="527" y="128">是</text>
+    <rect class="green" x="596" y="117" width="344" height="46" rx="9"/>
+    <text class="t" x="768" y="140">创建核心线程执行任务</text>
+
+    <path class="ed" d="M280,184 L280,214" marker-end="url(#arr14)"/>
+    <text class="el" x="298" y="200">否</text>
+
+    <polygon class="amber" points="280,218 460,262 280,306 100,262"/>
+    <text class="t" x="280" y="254">工作队列未满 ?</text>
+    <text class="t2" x="280" y="274">offer(task) 成功</text>
+    <path class="ed" d="M460,262 L594,262" marker-end="url(#arr14)"/>
+    <text class="el" x="527" y="250">是</text>
+    <rect class="green" x="596" y="239" width="344" height="46" rx="9"/>
+    <text class="t" x="768" y="262">任务入队，等待空闲线程</text>
+
+    <path class="ed" d="M280,306 L280,336" marker-end="url(#arr14)"/>
+    <text class="el" x="298" y="322">否</text>
+
+    <polygon class="amber" points="280,340 460,384 280,428 100,384"/>
+    <text class="t" x="280" y="376">线程数 &lt; maximumPoolSize ?</text>
+    <text class="t2" x="280" y="396">还有扩容空间</text>
+    <path class="ed" d="M460,384 L594,384" marker-end="url(#arr14)"/>
+    <text class="el" x="527" y="372">是</text>
+    <rect class="green" x="596" y="361" width="344" height="46" rx="9"/>
+    <text class="t" x="768" y="384">创建非核心线程执行任务</text>
+
+    <path class="edr" d="M280,428 L280,462" marker-end="url(#arrr14)"/>
+    <text class="el" x="298" y="446">否</text>
+
+    <rect class="red" x="110" y="464" width="340" height="50" rx="9"/>
+    <text class="t" x="280" y="489">执行拒绝策略</text>
+
+    <path class="ed" d="M280,514 L280,540"/>
+    <path class="ed" d="M140,540 L830,540"/>
+    <path class="ed" d="M140,540 L140,556" marker-end="url(#arr14)"/>
+    <path class="ed" d="M370,540 L370,556" marker-end="url(#arr14)"/>
+    <path class="ed" d="M600,540 L600,556" marker-end="url(#arr14)"/>
+    <path class="ed" d="M830,540 L830,556" marker-end="url(#arr14)"/>
+
+    <rect class="gray" x="30" y="558" width="220" height="56" rx="9"/>
+    <text class="t2" x="140" y="580">AbortPolicy</text>
+    <text class="t2" x="140" y="600">直接抛异常（默认）</text>
+
+    <rect class="gray" x="260" y="558" width="220" height="56" rx="9"/>
+    <text class="t2" x="370" y="580">CallerRunsPolicy</text>
+    <text class="t2" x="370" y="600">调用者线程自己跑</text>
+
+    <rect class="gray" x="490" y="558" width="220" height="56" rx="9"/>
+    <text class="t2" x="600" y="580">DiscardPolicy</text>
+    <text class="t2" x="600" y="600">静默丢弃新任务</text>
+
+    <rect class="gray" x="720" y="558" width="220" height="56" rx="9"/>
+    <text class="t2" x="830" y="580">DiscardOldestPolicy</text>
+    <text class="t2" x="830" y="600">丢掉队首最老的任务</text>
+
+    <rect class="amber" x="30" y="638" width="940" height="66" rx="9"/>
+    <text class="t" x="500" y="660">最容易记错的一点</text>
+    <text class="t2" x="500" y="684">核心线程满了之后「先入队」，队列满了才扩容到 maximumPoolSize —— 先排队，不是先加人</text>
+  </svg>
+  <figcaption>图 4-1　ThreadPoolExecutor 的任务提交路径</figcaption>
+</figure>
+
+<div class="key"><b>口述模板：</b>核心线程没满就开核心线程；核心满了先丢进队列；队列满了才开非核心线程；非核心也到上限就执行拒绝策略。</div>
+
+<h4>补充两个容易漏的细节</h4>
+
+<ul>
+  <li>入队成功后会 <strong>double-check</strong>：如果线程池已经 STOP，就把任务从队列移除并拒绝；如果这时 worker 数为 0（可能上一个线程刚销毁），会补建一个线程。</li>
+  <li><strong>非核心线程</strong>空闲超过 keepAliveTime 会被回收；<strong>核心线程默认不回收</strong>，除非设置 <code>allowCoreThreadTimeOut(true)</code>。</li>
+</ul>
+
+<h3>4.4 四种拒绝策略</h3>
+
+<table>
+  <thead><tr><th>策略</th><th>行为</th><th>适用场景</th></tr></thead>
+  <tbody>
+    <tr><td><strong>AbortPolicy</strong>（默认）</td><td>直接抛 RejectedExecutionException</td><td>需要感知失败并快速失败</td></tr>
+    <tr><td><strong>CallerRunsPolicy</strong></td><td>交给提交任务的线程自己执行</td><td>给上游施加背压，<strong>不丢任务</strong>；适合任务不能丢的场景</td></tr>
+    <tr><td><strong>DiscardPolicy</strong></td><td>静默丢弃，什么都不做</td><td>允许丢任务，但<strong>无法感知</strong>，一般不推荐</td></tr>
+    <tr><td><strong>DiscardOldestPolicy</strong></td><td>丢掉队首最老的任务，再尝试提交当前任务</td><td>只关心最新数据，如实时上报</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>生产建议：</b>用 <strong>自定义拒绝策略</strong>：既记录日志/埋点，又按业务决定是抛异常、降级还是落库重试。单纯的 DiscardPolicy 会让故障「静默发生」，排查时毫无线索。</div>
+
+<h3>4.5 线程池的状态流转</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 240" role="img" aria-label="线程池状态流转">
+    <defs>
+      <marker id="arr15" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb15" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr15" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg15" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="green" x="14" y="56" width="182" height="56" rx="9"/>
+    <text class="t" x="105" y="78">RUNNING</text>
+    <text class="t2" x="105" y="98">接受新任务</text>
+
+    <path class="ed" d="M196,84 L212,84" marker-end="url(#arr15)"/>
+
+    <rect class="blue" x="214" y="56" width="182" height="56" rx="9"/>
+    <text class="t" x="305" y="78">SHUTDOWN</text>
+    <text class="t2" x="305" y="98">处理完队列</text>
+
+    <path class="ed" d="M396,84 L412,84" marker-end="url(#arr15)"/>
+
+    <rect class="amber" x="414" y="56" width="182" height="56" rx="9"/>
+    <text class="t" x="505" y="78">STOP</text>
+    <text class="t2" x="505" y="98">中断进行中任务</text>
+
+    <path class="ed" d="M596,84 L612,84" marker-end="url(#arr15)"/>
+
+    <rect class="purple" x="614" y="56" width="182" height="56" rx="9"/>
+    <text class="t" x="705" y="78">TIDYING</text>
+    <text class="t2" x="705" y="98">workerCount = 0</text>
+
+    <path class="ed" d="M796,84 L812,84" marker-end="url(#arr15)"/>
+
+    <rect class="red" x="814" y="56" width="172" height="56" rx="9"/>
+    <text class="t" x="900" y="78">TERMINATED</text>
+    <text class="t2" x="900" y="98">彻底结束</text>
+
+    <text class="t2" x="105" y="140">shutdown()</text>
+    <text class="t2" x="105" y="160">不接新任务</text>
+    <text class="t2" x="305" y="140">队列空了</text>
+    <text class="t2" x="505" y="140">shutdownNow()</text>
+    <text class="t2" x="505" y="160">丢弃队列任务</text>
+    <text class="t2" x="705" y="140">执行完</text>
+    <text class="t2" x="705" y="160">terminated()</text>
+    <text class="t2" x="900" y="140">terminated()</text>
+    <text class="t2" x="900" y="160">执行完毕</text>
+
+    <rect class="gray" x="14" y="188" width="972" height="44" rx="9"/>
+    <text class="t2" x="500" y="210">ctl 是一个 AtomicInteger：高 3 位存运行状态，低 29 位存线程数量 —— 用一个变量同时表达两件事，避免加锁</text>
+  </svg>
+  <figcaption>图 4-2　线程池的五个状态与迁移条件</figcaption>
+</figure>
+
+<h3>4.6 队列怎么选</h3>
+
+<table>
+  <thead><tr><th>队列</th><th>是否有界</th><th>行为</th></tr></thead>
+  <tbody>
+    <tr><td>ArrayBlockingQueue</td><td><strong>有界</strong></td><td>必须指定容量，最可控，生产推荐</td></tr>
+    <tr><td>LinkedBlockingQueue</td><td>默认近似无界</td><td>maximumPoolSize 会<strong>形同虚设</strong>，任务无限积压到 OOM</td></tr>
+    <tr><td>SynchronousQueue</td><td>不存储</td><td>任务直接交给线程，没有线程就创建，配合大 maximumPoolSize</td></tr>
+    <tr><td>PriorityBlockingQueue</td><td>无界</td><td>按优先级执行，注意同样有积压风险</td></tr>
+    <tr><td>DelayQueue</td><td>无界</td><td>延时任务</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>关键因果关系：</b>队列选无界 → 永远不会触发「队列满」，所以<strong>永远不会创建非核心线程</strong>，maximumPoolSize 完全失效，任务一路堆到内存耗尽。这就是 FixedThreadPool 的隐患来源。</div>
+
+<h3>4.7 参数怎么定</h3>
+
+<table>
+  <thead><tr><th>任务类型</th><th>推荐线程数</th><th>理由</th></tr></thead>
+  <tbody>
+    <tr><td><strong>CPU 密集型</strong></td><td>N + 1</td><td>线程多了只会增加上下文切换，+1 用于应对偶发缺页</td></tr>
+    <tr><td><strong>IO 密集型</strong></td><td>2N 或更高</td><td>线程大部分时间在等待，留出并行度</td></tr>
+    <tr><td><strong>精确估算</strong></td><td>N × (1 + 等待时间 / 计算时间)</td><td>等待占比越高，线程数应越大</td></tr>
+  </tbody>
+</table>
+
+<p>（N 为 CPU 核心数，用 <code>Runtime.getRuntime().availableProcessors()</code> 获取。）</p>
+
+<p>实践中的四条经验：</p>
+
+<ul>
+  <li><strong>核心数和非核心数设成一样</strong>，避免线程频繁创建销毁带来的抖动。</li>
+  <li>用<strong>有界队列 + 明确的拒绝策略</strong>，让问题尽早暴露而不是拖到 OOM。</li>
+  <li>不同业务用<strong>不同的线程池隔离</strong>，别用一个池子跑所有任务（一个慢业务会拖垮全部）。</li>
+  <li>用<strong>自定义 ThreadFactory</strong> 给线程起业务可辨识的名字，出问题时 jstack 一眼能认出来。</li>
+</ul>
+
+<h3>4.8 为什么不用 Executors 创建线程池</h3>
+
+<table>
+  <thead><tr><th>快捷方法</th><th>隐患</th></tr></thead>
+  <tbody>
+    <tr><td>newFixedThreadPool</td><td>用 <strong>无界 LinkedBlockingQueue</strong>，任务无限堆积 → OOM</td></tr>
+    <tr><td>newSingleThreadExecutor</td><td>同上，无界队列</td></tr>
+    <tr><td>newCachedThreadPool</td><td>maximumPoolSize = <strong>Integer.MAX_VALUE</strong>，用 SynchronousQueue，任务激增时无限创建线程 → OOM，甚至打挂系统</td></tr>
+    <tr><td>newScheduledThreadPool</td><td>maximumPoolSize 同样是 Integer.MAX_VALUE</td></tr>
+  </tbody>
+</table>
+
+<div class="warn"><b>标准答法：</b>《阿里巴巴 Java 开发手册》明确要求<strong>不允许用 Executors 创建线程池</strong>，因为这些快捷方法要么用无界队列导致任务堆积 OOM，要么最大线程数是 Integer.MAX_VALUE 导致无限创建线程。正确做法是手动 <code>new ThreadPoolExecutor(...)</code>，明确指定有界队列、线程工厂和拒绝策略。</div>
+
+<h3>4.9 生产实践：监控与动态调参</h3>
+
+<ul>
+  <li><strong>监控指标</strong>：<code>getActiveCount()</code>（活跃线程数）、<code>getQueue().size()</code>（队列积压）、<code>getCompletedTaskCount()</code>（完成数）、最大线程数、拒绝次数。</li>
+  <li><strong>动态调参</strong>：<code>setCorePoolSize</code> / <code>setMaximumPoolSize</code> 可以运行时修改；美团开源的 <strong>DynamicTp</strong>、配置中心推送是常见方案。</li>
+  <li><strong>线程池隔离</strong>：不同业务、不同优先级的任务分开池子，避免相互影响。</li>
+  <li><strong>队列积压告警</strong>：队列长度持续增长通常意味着下游变慢或线程数不足，比等待 OOM 更早暴露问题。</li>
+</ul>
+
+<h3>4.10 高频追问速答</h3>
+
+<div class="qa"><b>Q：核心线程会一直存活吗？</b><br>
+A：默认是。但可以调用 <code>allowCoreThreadTimeOut(true)</code>，让核心线程也享受 keepAliveTime 超时回收，适合流量波峰波谷明显的场景。</div>
+
+<div class="qa"><b>Q：线程池里的线程抛异常了会怎样？</b><br>
+A：用 <code>execute()</code> 提交时，异常会打印到控制台并<strong>杀掉这个线程</strong>，线程池会再补一个新线程；用 <code>submit()</code> 提交时异常被包进 Future，<strong>不调用 get() 就永远看不到</strong>。所以要么 execute + try-catch，要么 submit + get，要么在 ThreadFactory 里设置 UncaughtExceptionHandler。</div>
+
+<div class="qa"><b>Q：线程池在什么时机创建线程？</b><br>
+A：默认是<strong>任务提交时惰性创建</strong>。想要预热可以用 <code>prestartAllCoreThreads()</code> 或 <code>prestartCoreThread()</code>。</div>
+
+<div class="qa"><b>Q：怎么优雅关闭线程池？</b><br>
+A：先 <code>shutdown()</code> 停止接收新任务，再 <code>awaitTermination(timeout)</code> 等待已有任务执行完；超时后视情况 <code>shutdownNow()</code> 强制中断。顺序不能反，否则会丢任务。</div>
+
+<div class="qa"><b>Q：怎么判断线程池该扩还是该缩？</b><br>
+A：看队列。如果<strong>队列经常积压但线程数没到上限</strong>，说明队列太深或 maximumPoolSize 太小；如果<strong>队列一直空但线程数很高</strong>，说明线程开多了，可以降低。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 5 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s5">
+<h2 class="ch"><small>第 5 章</small>Redis</h2>
+
+<p>Redis 的面试基本遵循一条主线：<strong>为什么快 → 怎么不丢数据 → 缓存怎么不出事 → 分布式锁怎么写</strong>。前两个是原理，后两个是实战，而且<strong>几乎一定会追问到你的项目</strong>。</p>
+
+<h3>5.1 为什么 Redis 这么快</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 310" role="img" aria-label="Redis 单线程模型">
+    <defs>
+      <marker id="arr16" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb16" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr16" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg16" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="20" y="40" width="130" height="44" rx="9"/>
+    <text class="t" x="85" y="62">客户端 A</text>
+    <rect class="blue" x="20" y="98" width="130" height="44" rx="9"/>
+    <text class="t" x="85" y="120">客户端 B</text>
+    <rect class="blue" x="20" y="156" width="130" height="44" rx="9"/>
+    <text class="t" x="85" y="178">客户端 C</text>
+
+    <path class="ed" d="M150,62 L190,62 L190,120"/>
+    <path class="ed" d="M150,178 L190,178 L190,120"/>
+    <path class="ed" d="M150,120 L226,120" marker-end="url(#arr16)"/>
+    <text class="el" x="188" y="104">连接</text>
+
+    <rect class="purple" x="228" y="72" width="190" height="96" rx="9"/>
+    <text class="t" x="323" y="98">IO 多路复用</text>
+    <text class="tm" x="323" y="122">epoll / kqueue</text>
+    <text class="t2" x="323" y="146">一个线程监听所有连接</text>
+
+    <path class="ed" d="M418,120 L444,120" marker-end="url(#arr16)"/>
+    <rect class="blue" x="446" y="72" width="160" height="96" rx="9"/>
+    <text class="t" x="526" y="98">事件队列</text>
+    <text class="t2" x="526" y="122">待处理事件 FIFO</text>
+
+    <path class="ed" d="M606,120 L632,120" marker-end="url(#arr16)"/>
+    <rect class="green" x="634" y="72" width="190" height="96" rx="9"/>
+    <text class="t" x="729" y="98">单线程事件循环</text>
+    <text class="t2" x="729" y="122">逐条取出并执行命令</text>
+
+    <path class="ed" d="M824,120 L850,120" marker-end="url(#arr16)"/>
+    <rect class="amber" x="852" y="72" width="128" height="96" rx="9"/>
+    <text class="t" x="916" y="106">内存数据</text>
+    <text class="t" x="916" y="128">结构</text>
+
+    <rect class="gray" x="20" y="200" width="960" height="94" rx="10"/>
+    <text class="t" x="500" y="222">快的四个原因</text>
+    <text class="t2" x="40" y="248">① 纯内存操作，不走磁盘　② IO 多路复用，网络等待时不占用 CPU　③ 数据结构高度优化（跳表、listpack、渐进式 rehash）</text>
+    <text class="t2" x="40" y="272">④ 单线程执行命令，避免了锁竞争、无上下文切换，命令天然具备原子性</text>
+    <text class="t2" x="40" y="292">注：Redis 6.0 起「网络 IO」改用多线程（读写 socket），但「命令执行」仍然是单线程，原子性不变</text>
+  </svg>
+  <figcaption>图 5-1　Redis 的单线程事件循环模型</figcaption>
+</figure>
+
+<div class="key"><b>「单线程」到底指什么？</b>指<strong>执行命令的那段逻辑是单线程的</strong>。所以不用加锁、不会出现并发写同一份数据的问题。但 Redis 并不是真的只有一个线程 —— 它还有后台线程处理持久化（BGSAVE/BGREWRITEAOF）、异步删除（unlink）等工作。</div>
+
+<h3>5.2 数据类型与底层编码</h3>
+
+<table>
+  <thead><tr><th>类型</th><th>说明</th><th>底层编码</th><th>典型场景</th></tr></thead>
+  <tbody>
+    <tr><td><strong>String</strong></td><td>二进制安全，最大 512MB</td><td>int / embstr / raw（SDS）</td><td>缓存对象、计数器、分布式锁</td></tr>
+    <tr><td><strong>Hash</strong></td><td>字段级读写</td><td>listpack / hashtable</td><td>存对象、购物车</td></tr>
+    <tr><td><strong>List</strong></td><td>双向链表，支持两端操作</td><td>quicklist（listpack 组成的双向链表）</td><td>消息队列、最新列表</td></tr>
+    <tr><td><strong>Set</strong></td><td>无序不重复</td><td>intset / listpack / hashtable</td><td>去重、共同好友</td></tr>
+    <tr><td><strong>ZSet</strong></td><td>有序不重复，按 score 排序</td><td>listpack / <strong>skiplist + hashtable</strong></td><td>排行榜、延时队列</td></tr>
+    <tr><td>Bitmap</td><td>位操作</td><td>String</td><td>签到、布隆过滤器</td></tr>
+    <tr><td>HyperLogLog</td><td>基数统计，误差 0.81%</td><td>稀疏/稠密编码</td><td>UV 统计</td></tr>
+    <tr><td>Geo</td><td>地理位置</td><td>ZSet（geohash）</td><td>附近的人</td></tr>
+    <tr><td>Stream</td><td>消息流，支持消费组</td><td>radix tree</td><td>消息队列</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>ZSet 为什么用跳表而不是红黑树？</b>三个理由：① 跳表实现更简单，代码量小、易于维护和调试；② <strong>范围查询更自然</strong>（ZRANGE 顺着底层链表走即可），红黑树需要中序遍历；③ 并发友好，局部修改只影响相邻节点。代价是空间复杂度略高（多级索引）。</div>
+
+<h3>5.3 持久化：RDB 与 AOF</h3>
+
+<table>
+  <thead><tr><th></th><th>RDB</th><th>AOF</th></tr></thead>
+  <tbody>
+    <tr><td>内容</td><td>某一时刻的<strong>数据快照</strong>（二进制）</td><td>记录所有<strong>写命令</strong></td></tr>
+    <tr><td>文件大小</td><td>小，压缩存储</td><td>大，可重写压缩</td></tr>
+    <tr><td>恢复速度</td><td>快</td><td>慢，要重放命令</td></tr>
+    <tr><td>数据安全</td><td>可能丢失最后一次快照之后的数据</td><td>取决于 appendfsync 策略</td></tr>
+    <tr><td>fork 开销</td><td>BGSAVE 时 fork 子进程，写时复制</td><td>AOF 重写同样需要 fork</td></tr>
+    <tr><td>触发方式</td><td>save / bgsave / 自动（如 900 秒内 1 次修改）</td><td>appendonly yes</td></tr>
+  </tbody>
+</table>
+
+<p><strong>AOF 的三档刷盘策略</strong>（对应 <code>appendfsync</code>）：</p>
+
+<ul>
+  <li><code>always</code>：每条命令都 fsync，<strong>最安全但性能最差</strong>。</li>
+  <li><code>everysec</code>（默认）：每秒 fsync 一次，最多丢 1 秒数据，性能与安全的平衡点。</li>
+  <li><code>no</code>：交给操作系统决定何时刷盘，最快但可能丢较多数据。</li>
+</ul>
+
+<div class="key"><b>混合持久化（Redis 4.0+，推荐）：</b>AOF 重写时，先以 <strong>RDB 格式</strong>写入当前全量数据，之后的增量命令继续以 <strong>AOF 格式</strong>追加。这样既有 RDB 的快速恢复，又有 AOF 的低数据丢失风险。</div>
+
+<h3>5.4 过期删除与内存淘汰</h3>
+
+<p><strong>过期删除策略</strong>是两者的组合：</p>
+
+<ul>
+  <li><strong>惰性删除</strong>：访问 key 时才检查是否过期，过期就删。省 CPU，但过期 key 可能长期占内存。</li>
+  <li><strong>定期删除</strong>：每秒随机抽查一部分设置了过期时间的 key，删除其中已过期的。是「抽样」而不是全量扫描，避免阻塞。</li>
+</ul>
+
+<p><strong>内存淘汰策略</strong>（<code>maxmemory-policy</code>）：</p>
+
+<table>
+  <thead><tr><th>策略</th><th>含义</th></tr></thead>
+  <tbody>
+    <tr><td>noeviction</td><td>不淘汰，写入直接报错（默认）</td></tr>
+    <tr><td><strong>allkeys-lru</strong></td><td>所有 key 中淘汰<strong>最久未使用</strong>的，最常用</td></tr>
+    <tr><td><strong>allkeys-lfu</strong></td><td>所有 key 中淘汰<strong>访问频率最低</strong>的（Redis 4.0+）</td></tr>
+    <tr><td>volatile-lru / lfu</td><td>只在<strong>设置了过期时间</strong>的 key 中淘汰</td></tr>
+    <tr><td>volatile-ttl</td><td>优先淘汰<strong>即将过期</strong>的 key</td></tr>
+    <tr><td>allkeys-random / volatile-random</td><td>随机淘汰</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>LRU vs LFU：</b>LRU 只看「最近是否用过」，一个很久没访问但突然被大量访问的 key 容易被误删；LFU 看「访问频率」，更能保护真正的热 key。热点数据明显的业务优先用 LFU。</div>
+
+<h3>5.5 三大缓存问题</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 360" role="img" aria-label="缓存穿透击穿雪崩">
+    <defs>
+      <marker id="arr17" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb17" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr17" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg17" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <!-- 穿透 -->
+    <text class="t" x="170" y="26">缓存穿透</text>
+    <rect class="gray" x="20" y="42" width="300" height="288" rx="10"/>
+    <rect class="blue" x="40" y="60" width="260" height="40" rx="8"/>
+    <text class="t2" x="170" y="80">请求一个不存在的 key</text>
+    <path class="edr" d="M170,100 L170,122" marker-end="url(#arrr17)"/>
+    <rect class="amber" x="40" y="124" width="260" height="40" rx="8"/>
+    <text class="t2" x="170" y="144">Redis 一直未命中</text>
+    <path class="edr" d="M170,164 L170,186" marker-end="url(#arrr17)"/>
+    <rect class="red" x="40" y="188" width="260" height="40" rx="8"/>
+    <text class="t2" x="170" y="208">每次都打到数据库</text>
+    <text class="t2" x="170" y="256">成因：查询条件本身不存在，</text>
+    <text class="t2" x="170" y="278">缓存无法命中，请求直达 DB</text>
+    <text class="t2" x="170" y="308">方案：布隆过滤器 / 缓存空值</text>
+
+    <!-- 击穿 -->
+    <text class="t" x="500" y="26">缓存击穿</text>
+    <rect class="gray" x="350" y="42" width="300" height="288" rx="10"/>
+    <rect class="blue" x="370" y="60" width="260" height="40" rx="8"/>
+    <text class="t2" x="500" y="80">某个热点 key 到了过期时间</text>
+    <path class="edr" d="M500,100 L500,122" marker-end="url(#arrr17)"/>
+    <rect class="amber" x="370" y="124" width="260" height="40" rx="8"/>
+    <text class="t2" x="500" y="144">大量并发同时未命中</text>
+    <path class="edr" d="M500,164 L500,186" marker-end="url(#arrr17)"/>
+    <rect class="red" x="370" y="188" width="260" height="40" rx="8"/>
+    <text class="t2" x="500" y="208">并发的 DB 查询压垮数据库</text>
+    <text class="t2" x="500" y="256">成因：单个热点 key 失效瞬间</text>
+    <text class="t2" x="500" y="278">高并发请求集中涌向 DB</text>
+    <text class="t2" x="500" y="308">方案：互斥锁重建 / 逻辑过期</text>
+
+    <!-- 雪崩 -->
+    <text class="t" x="830" y="26">缓存雪崩</text>
+    <rect class="gray" x="680" y="42" width="300" height="288" rx="10"/>
+    <rect class="blue" x="700" y="60" width="260" height="40" rx="8"/>
+    <text class="t2" x="830" y="80">大量 key 同时过期 / 宕机</text>
+    <path class="edr" d="M830,100 L830,122" marker-end="url(#arrr17)"/>
+    <rect class="amber" x="700" y="124" width="260" height="40" rx="8"/>
+    <text class="t2" x="830" y="144">命中率骤降为接近 0</text>
+    <path class="edr" d="M830,164 L830,186" marker-end="url(#arrr17)"/>
+    <rect class="red" x="700" y="188" width="260" height="40" rx="8"/>
+    <text class="t2" x="830" y="208">全部流量瞬间压向数据库</text>
+    <text class="t2" x="830" y="256">成因：过期时间集中 / 服务不可用</text>
+    <text class="t2" x="830" y="278">是系统级的整体失效</text>
+    <text class="t2" x="830" y="308">方案：过期加随机 / 多级缓存 / 熔断</text>
+  </svg>
+  <figcaption>图 5-2　穿透、击穿、雪崩的区别（穿透是「不存在」，击穿是「单个失效」，雪崩是「大面积失效」）</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th>问题</th><th>一句话本质</th><th>解决方案</th></tr></thead>
+  <tbody>
+    <tr><td><strong>穿透</strong></td><td>数据<strong>根本不存在</strong>，缓存无从命中</td><td>布隆过滤器拦截、缓存空值并设短过期时间、参数校验</td></tr>
+    <tr><td><strong>击穿</strong></td><td><strong>单个热点 key</strong> 失效瞬间并发涌入</td><td>互斥锁（只放一个线程去查 DB，其他等待）、逻辑过期（不设 TTL，异步更新）</td></tr>
+    <tr><td><strong>雪崩</strong></td><td><strong>大量 key 同时失效</strong>或 Redis 整体不可用</td><td>过期时间加随机值、集群高可用、多级缓存、服务熔断降级、提前预热</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>三个问题的记忆锚点：</b>穿透 = <strong>「查无此物」</strong>；击穿 = <strong>「一个点被打穿」</strong>；雪崩 = <strong>「整座山塌了」</strong>。</div>
+
+<h3>5.6 缓存与数据库的一致性</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 380" role="img" aria-label="Cache Aside 一致性方案">
+    <defs>
+      <marker id="arr18" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb18" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr18" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg18" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="20" y="26">读路径：Cache Aside</text>
+    <rect class="blue" x="20" y="44" width="120" height="44" rx="9"/>
+    <text class="t" x="80" y="66">读请求</text>
+    <path class="ed" d="M140,66 L176,66" marker-end="url(#arr18)"/>
+    <rect class="blue" x="178" y="44" width="140" height="44" rx="9"/>
+    <text class="t" x="248" y="66">查 Redis</text>
+
+    <path class="edg" d="M318,54 L366,42" marker-end="url(#arrg18)"/>
+    <text class="el" x="342" y="34">命中</text>
+    <rect class="green" x="368" y="20" width="160" height="40" rx="9"/>
+    <text class="t" x="448" y="40">直接返回</text>
+
+    <path class="ed" d="M318,78 L366,106" marker-end="url(#arr18)"/>
+    <text class="el" x="342" y="90">未命中</text>
+    <rect class="amber" x="368" y="88" width="160" height="40" rx="9"/>
+    <text class="t" x="448" y="108">查询数据库</text>
+    <path class="ed" d="M528,108 L562,108" marker-end="url(#arr18)"/>
+    <rect class="amber" x="564" y="88" width="180" height="40" rx="9"/>
+    <text class="t" x="654" y="108">写回 Redis</text>
+    <path class="ed" d="M744,108 L778,108" marker-end="url(#arr18)"/>
+    <rect class="green" x="780" y="88" width="180" height="40" rx="9"/>
+    <text class="t" x="870" y="108">返回数据</text>
+
+    <text class="lh" x="20" y="176">写路径：先更新数据库，再删除缓存</text>
+    <rect class="blue" x="20" y="194" width="120" height="44" rx="9"/>
+    <text class="t" x="80" y="216">写请求</text>
+    <path class="ed" d="M140,216 L176,216" marker-end="url(#arr18)"/>
+    <rect class="amber" x="178" y="194" width="160" height="44" rx="9"/>
+    <text class="t" x="258" y="216">更新数据库</text>
+    <path class="ed" d="M338,216 L374,216" marker-end="url(#arr18)"/>
+    <rect class="red" x="376" y="194" width="160" height="44" rx="9"/>
+    <text class="t" x="456" y="216">删除缓存</text>
+    <text class="t2" x="580" y="216">← 注意是「删除」而不是「更新」</text>
+
+    <rect class="gray" x="20" y="266" width="460" height="100" rx="10"/>
+    <text class="t" x="250" y="288">为什么是删除而不是更新缓存</text>
+    <text class="t2" x="40" y="312">① 更新缓存若失败，会留下脏数据；删除失败则只是回源一次</text>
+    <text class="t2" x="40" y="334">② 并发写场景下「更新缓存」更容易产生乱序覆盖</text>
+    <text class="t2" x="40" y="356">③ 冷数据被频繁更新时，更新缓存是白白浪费算力</text>
+
+    <rect class="green" x="500" y="266" width="480" height="100" rx="10"/>
+    <text class="t" x="740" y="288">更强一致的两种做法</text>
+    <text class="t2" x="520" y="312">延迟双删：更新 DB → 删缓存 → 延迟数百毫秒 → 再删一次</text>
+    <text class="t2" x="520" y="334">（用来兜住「删除后又有旧值被写回」的窗口期）</text>
+    <text class="t2" x="520" y="356">订阅 binlog（Canal）：异步、可靠，不侵入业务代码</text>
+  </svg>
+  <figcaption>图 5-3　Cache Aside 模式与两种一致的增强手段</figcaption>
+</figure>
+
+<div class="tip"><b>面试怎么说才显专业：</b>先给结论 —— 缓存和数据库<strong>无法做到强一致</strong>，只能做到最终一致。标准方案是 Cache Aside（先更新库、再删缓存），因为删除比更新更不容易产生脏数据；如果业务对一致性要求更高，再上<strong>延迟双删</strong>或<strong>binlog 订阅</strong>，同时用「过期时间 + 异步补偿」兜底。</div>
+
+<h3>5.7 分布式锁</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 410" role="img" aria-label="Redis 分布式锁">
+    <defs>
+      <marker id="arr19" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb19" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr19" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg19" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="100" y="18" width="800" height="46" rx="9"/>
+    <text class="tm" x="500" y="41">SET lock_key unique_value NX PX 30000</text>
+    <path class="ed" d="M380,64 L290,88" marker-end="url(#arr19)"/>
+    <path class="ed" d="M620,64 L710,88" marker-end="url(#arr19)"/>
+
+    <rect class="green" x="100" y="90" width="380" height="46" rx="9"/>
+    <text class="t" x="290" y="113">返回 OK → 加锁成功</text>
+    <rect class="amber" x="520" y="90" width="380" height="46" rx="9"/>
+    <text class="t" x="710" y="113">返回 nil → 自旋重试或失败</text>
+
+    <path class="ed" d="M290,136 L290,168" marker-end="url(#arr19)"/>
+    <rect class="blue" x="100" y="170" width="800" height="46" rx="9"/>
+    <text class="t" x="500" y="193">执行业务逻辑</text>
+
+    <path class="ed" d="M500,216 L500,246" marker-end="url(#arr19)"/>
+    <rect class="purple" x="100" y="248" width="800" height="46" rx="9"/>
+    <text class="t" x="500" y="271">Redisson 看门狗：每 10 秒自动续期一次（默认锁过期时间 30 秒的 1/3）</text>
+
+    <path class="ed" d="M500,294 L500,318" marker-end="url(#arr19)"/>
+    <rect class="red" x="100" y="320" width="800" height="46" rx="9"/>
+    <text class="tm" x="500" y="343">Lua: if get(KEYS[1]) == ARGV[1] then del(KEYS[1]) end</text>
+
+    <text class="t2" x="500" y="390">用 Lua 是为了保证「判断是不是自己的锁」和「删除」两步的原子性，避免误删别人的锁</text>
+  </svg>
+  <figcaption>图 5-4　基于 Redis 的分布式锁完整链路</figcaption>
+</figure>
+
+<h4>为什么这几个要素都不能少</h4>
+
+<table>
+  <thead><tr><th>要素</th><th>缺失的后果</th></tr></thead>
+  <tbody>
+    <tr><td><strong>NX</strong>（不存在才设置）</td><td>锁会被后者直接覆盖，完全失去互斥性</td></tr>
+    <tr><td><strong>PX / EX</strong>（过期时间）</td><td>持锁方宕机，锁永远不释放，形成死锁</td></tr>
+    <tr><td><strong>unique value</strong>（唯一值，如 UUID + 线程 ID）</td><td>无法区分锁是谁加的，会误删他人的锁</td></tr>
+    <tr><td><strong>Lua 脚本</strong>释放</td><td>「判断」与「删除」之间存在并发窗口，仍然会误删</td></tr>
+    <tr><td><strong>看门狗续期</strong></td><td>业务执行时间超过锁过期时间，业务未完成锁就没了</td></tr>
+  </tbody>
+</table>
+
+<div class="warn"><b>两个高频追问：</b><br>
+① <strong>锁过期了业务还没执行完怎么办？</strong>—— 用 Redisson 的看门狗自动续期；简单实现则把过期时间设得足够长并加业务超时。<br>
+② <strong>主从架构下锁可靠吗？</strong>—— 不可靠。主节点写入后还未同步给从节点就宕机，从节点升主后锁就丢了。这就是 <strong>RedLock</strong> 想解决的问题（向多数节点加锁），但 RedLock 本身也有争议。真正要求强一致的场景，建议用 <strong>ZooKeeper / etcd</strong>：它们基于 ZAB / Raft，保证写入已提交后才返回。</div>
+
+<h3>5.8 高可用：主从、哨兵、集群</h3>
+
+<table>
+  <thead><tr><th>方案</th><th>解决的问题</th><th>局限</th></tr></thead>
+  <tbody>
+    <tr><td><strong>主从复制</strong></td><td>读扩展、数据备份</td><td>主挂了需要<strong>人工切换</strong></td></tr>
+    <tr><td><strong>哨兵 Sentinel</strong></td><td>监控 + 自动故障转移 + 通知客户端新主</td><td>仍是单主，写能力和容量受单机限制</td></tr>
+    <tr><td><strong>Cluster 集群</strong></td><td>数据分片（<strong>16384 个 slot</strong>）+ 高可用</td><td>运维复杂，跨 slot 的多 key 操作受限</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>复制原理：</b>从节点首次连接主节点时发起 <strong>全量同步</strong>（主节点 fork 生成 RDB + 缓冲区内的增量命令）；之后的 <strong>增量同步</strong>靠 <code>repl_backlog</code> 环形缓冲区完成。主从复制默认是<strong>异步</strong>的，所以会有一致性窗口。</div>
+
+<h3>5.9 高频追问速答</h3>
+
+<div class="qa"><b>Q：Redis 是单线程，为什么还这么快？</b><br>
+A：纯内存操作、IO 多路复用、高效数据结构，再加上单线程避免了锁竞争和上下文切换。</div>
+
+<div class="qa"><b>Q：big key 有什么危害？</b><br>
+A：单线程模型下，一个 big key 的读取/删除会<strong>阻塞整个实例</strong>；网络传输也会瞬间打满带宽。要拆分成多个小 key，删除用 <code>unlink</code> 异步删除。</div>
+
+<div class="qa"><b>Q：怎么实现延时队列？</b><br>
+A：用 <strong>ZSet</strong>，score 存执行时间戳，起一个线程轮询 <code>ZRANGEBYSCORE 0 当前时间</code>，到点的取出来执行并删除；或者直接用 Redisson 的 RDelayedQueue。</div>
+
+<div class="qa"><b>Q：如何用 Redis 实现限流？</b><br>
+A：固定窗口用 <code>INCR</code> + <code>EXPIRE</code>；滑动窗口用 <strong>ZSet</strong>（存请求时间戳，统计窗口内的数量）；最精确的是<strong>令牌桶</strong>，用 Lua 脚本保证「取令牌 + 放令牌」的原子性。</div>
+
+<div class="qa"><b>Q：pipeline 和 Lua 的区别？</b><br>
+A：pipeline 只是把多条命令<strong>批量发送</strong>，减少网络往返，但<strong>不保证原子性</strong>；Lua 脚本在服务端<strong>整体原子执行</strong>，中间不会插入其他命令。</div>
+
+<div class="qa"><b>Q：缓存和数据库双写，先删缓存还是先更新库？</b><br>
+A：推荐<strong>先更新数据库、再删除缓存</strong>。反过来的话，在删除缓存和更新数据库之间如果有一个读请求进来，会把旧值重新加载进缓存，导致长期脏数据；而「先更新库后删缓存」的脏窗口极短，且可用延迟双删兜底。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 6 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s6">
+<h2 class="ch"><small>第 6 章</small>分布式事务</h2>
+
+<p>这一章的答题结构很固定：<strong>先说为什么单机事务不够用 → 再说理论（CAP / BASE）→ 最后按方案分类展开</strong>。面试官最想听到的是「为什么这个业务场景选这个方案」，所以每个方案都要记住它的<strong>代价</strong>。</p>
+
+<h3>6.1 为什么单机事务不够用了</h3>
+
+<p>本地事务（ACID）依赖数据库的锁和日志，前提是<strong>所有操作在同一个数据库连接、同一个资源管理器里</strong>。一旦业务被拆成多个服务、每个服务用各自的数据源，本地事务就无能为力了。</p>
+
+<p>典型场景：下单要同时做「订单库创建订单」和「库存库扣减库存」，两个库在两个服务里，没法用一个 <code>@Transactional</code> 搞定。</p>
+
+<h3>6.2 理论基础</h3>
+
+<table>
+  <thead><tr><th>理论</th><th>含义</th></tr></thead>
+  <tbody>
+    <tr><td><strong>CAP</strong></td><td>一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）<strong>三者不可同时满足</strong>。分布式系统必然存在网络分区，所以 P 必须保留，实际是在 <strong>C 和 A 之间取舍</strong>。</td></tr>
+    <tr><td><strong>BASE</strong></td><td>Basically Available（基本可用）、Soft state（软状态）、Eventually consistent（最终一致）。是 CAP 中<strong>放弃强一致、保留可用性</strong>的实践路线。</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>一句话说透：</b>金融核心（转账、支付记账）倾向 <strong>CP</strong>，宁可失败也不能算错；电商、社交这类业务倾向 <strong>AP</strong>，接受短暂不一致，靠补偿达到<strong>最终一致</strong>。绝大多数互联网分布式事务方案走的都是 BASE 路线。</div>
+
+<h3>6.3 两阶段提交（2PC / 3PC）</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 430" role="img" aria-label="两阶段提交">
+    <defs>
+      <marker id="arr20" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb20" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr20" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg20" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="60" y="18" width="880" height="50" rx="9"/>
+    <text class="t" x="500" y="43">阶段一（准备 / 投票）：协调者向所有参与者发 prepare，参与者执行事务但「不提交」，返回 yes 或 no</text>
+
+    <path class="ed" d="M300,68 L300,88" marker-end="url(#arr20)"/>
+    <path class="ed" d="M700,68 L700,88" marker-end="url(#arr20)"/>
+
+    <rect class="green" x="60" y="90" width="420" height="50" rx="9"/>
+    <text class="t" x="270" y="115">全部返回 yes → 阶段二发送 commit</text>
+
+    <rect class="red" x="520" y="90" width="420" height="50" rx="9"/>
+    <text class="t" x="730" y="115">任一 no 或超时 → 阶段二发送 rollback</text>
+
+    <path class="edg" d="M270,140 L270,166" marker-end="url(#arrg20)"/>
+    <path class="edr" d="M730,140 L730,166" marker-end="url(#arrr20)"/>
+
+    <rect class="green" x="60" y="168" width="420" height="50" rx="9"/>
+    <text class="t" x="270" y="193">参与者提交事务，释放锁</text>
+
+    <rect class="red" x="520" y="168" width="420" height="50" rx="9"/>
+    <text class="t" x="730" y="193">参与者回滚事务，释放锁</text>
+
+    <rect class="amber" x="60" y="246" width="880" height="170" rx="10"/>
+    <text class="t" x="500" y="270">2PC 的四个硬伤</text>
+    <text class="t2" x="80" y="298">① 同步阻塞：参与者在等待协调者指令期间一直持有资源锁，吞吐低、易超时</text>
+    <text class="t2" x="80" y="322">② 协调者单点：协调者宕机后，参与者会长时间阻塞，不知道该提交还是回滚</text>
+    <text class="t2" x="80" y="346">③ 数据不一致：阶段二只有部分参与者收到 commit 就宕机 → 出现部分提交、部分未提交</text>
+    <text class="t2" x="80" y="370">④ 3PC 的改进：加入超时机制和「预提交」阶段，缓解阻塞，但</text>
+    <text class="t2" x="80" y="394">　 仍然无法从根本上解决网络分区下的一致性问题</text>
+  </svg>
+  <figcaption>图 6-1　2PC 的两个阶段与主要缺陷</figcaption>
+</figure>
+
+<div class="tip"><b>XA 与 2PC 的关系：</b>XA 是 X/Open 组织定义的<strong>分布式事务规范</strong>，2PC 是它的具体实现协议。MySQL、Oracle 等数据库都实现了 XA 接口。但 XA 同样是同步阻塞的，且要在数据库层面持有锁直到全局提交，<strong>高性能场景很少用</strong>。</div>
+
+<h3>6.4 TCC：业务层的两阶段提交</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 470" role="img" aria-label="TCC 三阶段">
+    <defs>
+      <marker id="arr21" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb21" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr21" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg21" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="30" y="26">Try：预留资源（冻结，不真正扣减）</text>
+
+    <rect class="blue" x="30" y="42" width="300" height="52" rx="9"/>
+    <text class="t" x="180" y="62">账户服务</text>
+    <text class="t2" x="180" y="82">冻结 100 元</text>
+
+    <rect class="blue" x="350" y="42" width="300" height="52" rx="9"/>
+    <text class="t" x="500" y="62">库存服务</text>
+    <text class="t2" x="500" y="82">锁定 1 件商品</text>
+
+    <rect class="blue" x="670" y="42" width="300" height="52" rx="9"/>
+    <text class="t" x="820" y="62">订单服务</text>
+    <text class="t2" x="820" y="82">创建待确认订单</text>
+
+    <path class="ed" d="M180,94 L180,106 L820,106 L820,118" />
+    <path class="ed" d="M500,106 L500,140" marker-end="url(#arr21)"/>
+
+    <polygon class="amber" points="500,142 730,190 500,238 270,190"/>
+    <text class="t" x="500" y="190">所有 Try 都成功了吗？</text>
+
+    <path class="edg" d="M270,190 L262,246" marker-end="url(#arrg21)"/>
+    <text class="el" x="240" y="222">全部成功</text>
+    <path class="edr" d="M730,190 L738,246" marker-end="url(#arrr21)"/>
+    <text class="el" x="762" y="222">任一失败</text>
+
+    <rect class="green" x="60" y="248" width="400" height="60" rx="9"/>
+    <text class="t" x="260" y="270">Confirm：真正扣减</text>
+    <text class="t2" x="260" y="292">解冻并扣款、扣库存、订单生效</text>
+
+    <rect class="red" x="540" y="248" width="400" height="60" rx="9"/>
+    <text class="t" x="740" y="270">Cancel：释放预留</text>
+    <text class="t2" x="740" y="292">解冻金额、解锁库存、取消订单</text>
+
+    <rect class="amber" x="30" y="330" width="940" height="124" rx="10"/>
+    <text class="t" x="500" y="354">TCC 必须处理的三个坑</text>
+    <text class="t2" x="50" y="382">① 幂等：Confirm / Cancel 可能被重复调用（网络重试、回查），必须保证执行多次结果一致</text>
+    <text class="t2" x="50" y="406">② 防悬挂：Cancel 先于 Try 到达时，Try 不能再去执行（否则资源被冻结后无人释放）</text>
+    <text class="t2" x="50" y="430">③ 空回滚：Try 根本没执行，却收到了 Cancel，需要能识别并直接返回成功</text>
+  </svg>
+  <figcaption>图 6-2　TCC 的 Try / Confirm / Cancel 与三个必须处理的异常场景</figcaption>
+</figure>
+
+<p><strong>TCC 的本质</strong>：把「两阶段提交」从数据库层搬到业务层。Try 是<strong>预留</strong>（冻结而非扣减），Confirm 是<strong>最终确认</strong>，Cancel 是<strong>反向补偿</strong>。</p>
+
+<table>
+  <thead><tr><th></th><th>2PC / XA</th><th>TCC</th></tr></thead>
+  <tbody>
+    <tr><td>锁的粒度</td><td>数据库行锁 / 表锁，一直持有到全局提交</td><td>业务层的<strong>逻辑冻结</strong>，不长期占数据库锁</td></tr>
+    <tr><td>性能</td><td>低，同步阻塞</td><td>较高，但需要改造业务</td></tr>
+    <tr><td>侵入性</td><td>低（框架透明）</td><td><strong>高，每个参与方都要写三个方法</strong></td></tr>
+    <tr><td>一致性</td><td>强一致（但有失败窗口）</td><td>最终一致</td></tr>
+    <tr><td>适用</td><td>短事务、内部系统</td><td>金融、支付等对一致性要求高的场景</td></tr>
+  </tbody>
+</table>
+
+<h3>6.5 可靠消息最终一致（RocketMQ 事务消息）</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 500" role="img" aria-label="RocketMQ 事务消息流程">
+    <defs>
+      <marker id="arr22" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb22" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr22" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg22" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="60" y="18" width="880" height="46" rx="9"/>
+    <text class="t" x="500" y="41">① 生产者发送「半消息」（Half Message）到 Broker，此时消费者不可见</text>
+    <path class="ed" d="M500,64 L500,82" marker-end="url(#arr22)"/>
+
+    <rect class="blue" x="60" y="84" width="880" height="46" rx="9"/>
+    <text class="t" x="500" y="107">② Broker 持久化成功，返回 ACK</text>
+    <path class="ed" d="M500,130 L500,148" marker-end="url(#arr22)"/>
+
+    <rect class="blue" x="60" y="150" width="880" height="46" rx="9"/>
+    <text class="t" x="500" y="173">③ 生产者执行本地事务（比如扣款、写订单）</text>
+    <path class="ed" d="M500,196 L500,214" marker-end="url(#arr22)"/>
+
+    <path class="ed" d="M500,214 L280,214 L280,232" marker-end="url(#arr22)"/>
+    <path class="ed" d="M500,214 L740,214 L740,232" marker-end="url(#arr22)"/>
+
+    <rect class="green" x="60" y="234" width="440" height="56" rx="9"/>
+    <text class="t" x="280" y="256">④ 本地事务成功 → commit</text>
+    <text class="t2" x="280" y="278">消息对消费者可见，投递出去</text>
+
+    <rect class="red" x="520" y="234" width="420" height="56" rx="9"/>
+    <text class="t" x="730" y="256">④ 本地事务失败 → rollback</text>
+    <text class="t2" x="730" y="278">消息被丢弃</text>
+
+    <path class="ed" d="M500,290 L500,308" marker-end="url(#arr22)"/>
+    <rect class="purple" x="60" y="310" width="880" height="56" rx="9"/>
+    <text class="t" x="500" y="332">⑤ 如果生产者迟迟没回复（宕机 / 网络抖动）</text>
+    <text class="t2" x="500" y="354">Broker 定时回查生产者的本地事务状态，决定 commit 还是 rollback</text>
+
+    <path class="ed" d="M500,366 L500,384" marker-end="url(#arr22)"/>
+    <rect class="blue" x="60" y="386" width="880" height="46" rx="9"/>
+    <text class="t" x="500" y="409">⑥ 消费者消费消息，业务侧必须做幂等（唯一索引 / 去重表 / 状态机）</text>
+
+    <rect class="amber" x="60" y="444" width="880" height="48" rx="9"/>
+    <text class="t" x="500" y="468">核心保证：本地事务成功 → 消息一定投递；本地事务失败 → 消息一定不投递</text>
+  </svg>
+  <figcaption>图 6-3　RocketMQ 事务消息的完整链路（含回查机制）</figcaption>
+</figure>
+
+<p><strong>本地消息表</strong>是同一思路的「土办法」：把「业务操作」和「往消息表插一条记录」放在<strong>同一个本地事务</strong>里，然后由定时任务扫描消息表把消息发出去，发送成功就标记完成。优点是实现简单、不依赖特定 MQ；缺点是多了轮询、实时性差。</p>
+
+<div class="key"><b>这类方案能成立的两个前提：</b>① 本地事务和消息投递之间靠<strong>回查 / 轮询</strong>兜底，保证「一定会发出去」；② 消费端必须<strong>幂等</strong>，因为消息可能重复投递（至少一次语义）。</div>
+
+<h3>6.6 Saga：长事务的补偿链</h3>
+
+<p>Saga 把一个长事务拆成 <strong>N 个本地事务</strong> <code>T1...Tn</code>，每个 Ti 配一个补偿操作 <code>Ci</code>。依次执行，一旦第 k 步失败，就<strong>反向执行 Ck-1 ... C1</strong> 回滚前面已完成的步骤。</p>
+
+<table>
+  <thead><tr><th></th><th>正向编排 vs 反向补偿</th></tr></thead>
+  <tbody>
+    <tr><td>优点</td><td>无长锁、性能好，适合流程长、跨多个服务的业务</td></tr>
+    <tr><td>缺点</td><td><strong>没有隔离性</strong>，中间状态对外可见；补偿逻辑必须自己写且要幂等</td></tr>
+    <tr><td>实现</td><td>Seata Saga 模式、Temporal、Camunda 等工作流引擎</td></tr>
+  </tbody>
+</table>
+
+<h3>6.7 Seata 的四种模式</h3>
+
+<table>
+  <thead><tr><th>模式</th><th>原理</th><th>特点</th></tr></thead>
+  <tbody>
+    <tr><td><strong>AT</strong>（默认，最常用）</td><td>拦截 SQL，自动记录 <strong>undo log</strong>；提交时先注册<strong>全局锁</strong>，回滚时用 undo log 反向补偿</td><td>对业务几乎无侵入，适合大多数场景</td></tr>
+    <tr><td><strong>TCC</strong></td><td>业务自己实现 Try / Confirm / Cancel</td><td>侵入大，但性能好、可控性强</td></tr>
+    <tr><td><strong>Saga</strong></td><td>长事务编排 + 补偿</td><td>适合长流程、多参与者</td></tr>
+    <tr><td><strong>XA</strong></td><td>数据库原生 XA 接口</td><td>强一致，但性能差</td></tr>
+  </tbody>
+</table>
+
+<div class="tip"><b>Seata 的三个角色：</b><strong>TC</strong>（Transaction Coordinator，事务协调者，独立部署的 Server）、<strong>TM</strong>（Transaction Manager，发起全局事务的一方）、<strong>RM</strong>（Resource Manager，管理分支事务的资源）。TM 向 TC 申请开启全局事务拿到 XID，XID 沿调用链传播，RM 用 XID 注册分支。</div>
+
+<h3>6.8 方案选型</h3>
+
+<table>
+  <thead><tr><th>业务特征</th><th>推荐方案</th><th>理由</th></tr></thead>
+  <tbody>
+    <tr><td>强一致、短事务、内部系统</td><td>2PC / XA、Seata AT</td><td>实现简单、一致性强，性能可接受</td></tr>
+    <tr><td>金融资金类、要求高一致</td><td>TCC</td><td>可控性强，能精细控制资源预留与释放</td></tr>
+    <tr><td>跨服务、可接受最终一致</td><td>可靠消息 / RocketMQ 事务消息</td><td>解耦、异步，吞吐高</td></tr>
+    <tr><td>长流程（审批、履约）</td><td>Saga</td><td>避免长事务持锁，用补偿回滚</td></tr>
+    <tr><td>只要求「通知到位」</td><td>最大努力通知</td><td>实现最轻，如支付结果回调</td></tr>
+  </tbody>
+</table>
+
+<div class="key"><b>答题加分点：</b>主动说出「<strong>没有银弹</strong>」—— 所有方案的共同要求是<strong>幂等 + 可重试 + 可补偿 + 可观测</strong>。分布式事务的落地难点通常不在框架，而在补偿逻辑怎么写、重复消息怎么去重、悬挂怎么防。</div>
+
+<h3>6.9 高频追问速答</h3>
+
+<div class="qa"><b>Q：为什么 TCC 需要「防悬挂」？</b><br>
+A：因为网络是不可靠的。Cancel 可能因为重试<strong>先于</strong> Try 到达，如果 Try 之后才执行，就会冻结一笔永远不会被释放的资源。做法是记录事务状态，Try 执行前先判断该分支是否已被 Cancel。</div>
+
+<div class="qa"><b>Q：为什么要做空回滚？</b><br>
+A：Try 因为网络超时没到达参与方，但协调者认为失败并发起了 Cancel。此时参与方要识别出「这个分支根本没执行过」，直接返回成功，而不是报错导致补偿链断裂。</div>
+
+<div class="qa"><b>Q：分布式事务里「幂等」怎么实现？</b><br>
+A：常见四种 —— <strong>唯一索引</strong>（数据库层兜底）、<strong>去重表</strong>（记录已处理的事务 ID）、<strong>状态机</strong>（只允许特定状态迁移）、<strong>Token 机制</strong>（先申请再提交，用一次就失效）。</div>
+
+<div class="qa"><b>Q：Seata AT 模式为什么需要全局锁？</b><br>
+A：AT 是<strong>先提交本地事务、后全局回滚</strong>的。如果在全局事务提交前，另一个全局事务修改了同一行数据，回滚时就会覆盖掉别人的修改。全局锁用来保证「同一条记录不会被两个全局事务同时操作」。</div>
+
+<div class="qa"><b>Q：如果消息消费失败怎么办？</b><br>
+A：MQ 自带重试（RocketMQ 默认 16 次、指数退避）；重试仍失败就进<strong>死信队列</strong>，由人工或补偿任务处理。同时业务侧要有对账兜底，比如定时任务扫描异常单据。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 7 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s7">
+<h2 class="ch"><small>第 7 章</small>Spring 与 Spring Boot</h2>
+
+<p>Spring 的面试题只有两个真正的难点：<strong>Bean 生命周期</strong>和<strong>循环依赖的三级缓存</strong>。其余（IoC、AOP、MVC、事务）只要能把流程说顺、把失效场景说全，就足够了。</p>
+
+<h3>7.1 IoC 与 DI</h3>
+
+<ul>
+  <li><strong>IoC（控制反转）</strong>：对象的创建、装配、销毁交给容器，程序不再自己 <code>new</code>。</li>
+  <li><strong>DI（依赖注入）</strong>：IoC 的实现手段，容器把依赖「推」给对象。</li>
+  <li>三种注入方式：<strong>构造器注入</strong>（推荐，能保证依赖不为空、便于测试、支持 final）、<strong>setter 注入</strong>（可选依赖）、<strong>字段注入</strong>（最简洁但难以测试，Spring 官方不推荐）。</li>
+</ul>
+
+<h3>7.2 Bean 的完整生命周期</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 780" role="img" aria-label="Spring Bean 生命周期">
+    <defs>
+      <marker id="arr23" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb23" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr23" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg23" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="120" y="20" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="48">① 实例化（反射调用构造器）</text>
+    <text class="lh" x="560" y="48">默认使用无参构造，或唯一的有参构造</text>
+    <path class="ed" d="M320,76 L320,94" marker-end="url(#arr23)"/>
+
+    <rect class="blue" x="120" y="96" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="124">② 属性填充（populateBean）</text>
+    <text class="lh" x="560" y="124">循环依赖就发生在这里：需要注入的对象还没造好</text>
+    <path class="ed" d="M320,152 L320,170" marker-end="url(#arr23)"/>
+
+    <rect class="blue" x="120" y="172" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="200">③ Aware 接口回调</text>
+    <text class="lh" x="560" y="200">BeanNameAware / BeanFactoryAware / ApplicationContextAware</text>
+    <path class="ed" d="M320,228 L320,246" marker-end="url(#arr23)"/>
+
+    <rect class="amber" x="120" y="248" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="276">④ postProcessBeforeInitialization</text>
+    <text class="lh" x="560" y="276">BeanPostProcessor 在初始化之前做增强</text>
+    <path class="ed" d="M320,304 L320,322" marker-end="url(#arr23)"/>
+
+    <rect class="green" x="120" y="324" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="352">⑤ 初始化</text>
+    <text class="lh" x="560" y="340">执行顺序固定：</text>
+    <text class="lh" x="560" y="362">@PostConstruct → afterPropertiesSet → init-method</text>
+    <path class="ed" d="M320,380 L320,398" marker-end="url(#arr23)"/>
+
+    <rect class="red" x="120" y="400" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="428">⑥ postProcessAfterInitialization</text>
+    <rect x="548" y="404" width="436" height="48" rx="9" fill="#fdecec" stroke="#d64545" stroke-dasharray="5 4"/>
+    <text class="lh" x="562" y="420">★ AOP 代理在这里生成：返回的对象可能已经不是</text>
+    <text class="lh" x="562" y="440">　原始对象，而是被包装过的代理对象</text>
+    <path class="ed" d="M320,456 L320,474" marker-end="url(#arr23)"/>
+
+    <rect class="gray" x="120" y="476" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="504">⑦ Bean 就绪，可以使用</text>
+    <text class="lh" x="560" y="504">放入单例池 singletonObjects，可被注入给其他 Bean</text>
+    <path class="ed" d="M320,532 L320,550" marker-end="url(#arr23)"/>
+
+    <rect class="green" x="120" y="552" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="580">⑧ 销毁</text>
+    <text class="lh" x="560" y="568">顺序：@PreDestroy → DisposableBean.destroy → destroy-method</text>
+    <text class="lh" x="560" y="590">仅单例 Bean 才会被容器主动调用销毁方法</text>
+    <path class="ed" d="M320,608 L320,626" marker-end="url(#arr23)"/>
+
+    <rect class="gray" x="120" y="628" width="400" height="56" rx="9"/>
+    <text class="t" x="320" y="656">⑨ 容器关闭，对象被回收</text>
+
+    <rect class="amber" x="30" y="706" width="940" height="60" rx="10"/>
+    <text class="t" x="500" y="728">面试最容易问的顺序题</text>
+    <text class="t2" x="500" y="752">构造方法 → @Autowired 注入 → @PostConstruct → afterPropertiesSet → init-method</text>
+  </svg>
+  <figcaption>图 7-1　Spring Bean 的生命周期（红色标注的是 AOP 代理生成点，最常被追问）</figcaption>
+</figure>
+
+<h3>7.3 循环依赖与三级缓存</h3>
+
+<p><strong>什么是循环依赖</strong>：A 依赖 B，B 又依赖 A。如果不做处理，创建 A 时发现需要 B，创建 B 时又发现需要 A，无限递归下去。</p>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 700" role="img" aria-label="三级缓存">
+    <defs>
+      <marker id="arr24" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb24" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr24" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg24" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <text class="lh" x="30" y="26">三个 Map 都在 DefaultSingletonBeanRegistry 里，箭头方向是「提升 / 晋级」的方向</text>
+
+    <rect class="red" x="30" y="44" width="300" height="112" rx="10"/>
+    <text class="t" x="180" y="68">三级 singletonFactories</text>
+    <text class="t2" x="180" y="94">Map&lt;String, ObjectFactory&lt;?&gt;&gt;</text>
+    <text class="t2" x="180" y="118">存的是「能生成早期引用的工厂」</text>
+    <text class="t2" x="180" y="140">延迟决定要不要生成 AOP 代理</text>
+
+    <path class="ed" d="M330,100 L346,100" marker-end="url(#arr24)"/>
+    <text class="el" x="338" y="86">getObject()</text>
+
+    <rect class="amber" x="348" y="44" width="300" height="112" rx="10"/>
+    <text class="t" x="498" y="68">二级 earlySingletonObjects</text>
+    <text class="t2" x="498" y="94">Map&lt;String, Object&gt;</text>
+    <text class="t2" x="498" y="118">存「半成品」，已经提前暴露</text>
+    <text class="t2" x="498" y="140">属性还没填完，但引用可用</text>
+
+    <path class="ed" d="M648,100 L664,100" marker-end="url(#arr24)"/>
+    <text class="el" x="656" y="86">填充完成</text>
+
+    <rect class="green" x="666" y="44" width="304" height="112" rx="10"/>
+    <text class="t" x="818" y="68">一级 singletonObjects</text>
+    <text class="t2" x="818" y="94">Map&lt;String, Object&gt;</text>
+    <text class="t2" x="818" y="118">完整的、可以直接使用的成品</text>
+    <text class="t2" x="818" y="140">getBean 最终返回的就是它</text>
+
+    <rect class="gray" x="30" y="172" width="940" height="40" rx="8"/>
+    <text class="t2" x="500" y="192">注意：查找顺序与提升方向相反 —— 先查一级，没有查二级，再没有才查三级</text>
+
+    <rect class="blue" x="30" y="228" width="940" height="352" rx="10"/>
+    <text class="t" x="500" y="252">以「A 依赖 B、B 依赖 A」为例</text>
+    <text class="lh" x="60" y="286">① 创建 A：实例化完成后，把 A 的 ObjectFactory 放入三级缓存</text>
+    <text class="lh" x="60" y="330">② 填充 A 的属性时发现依赖 B，于是转而创建 B</text>
+    <text class="lh" x="60" y="374">③ 创建 B：实例化完成后，B 也把自己放进三级缓存</text>
+    <text class="lh" x="60" y="418">④ 填充 B 的属性时又发现依赖 A —— 调用 getSingleton(A)：一级没有 → 二级没有 → 三级有</text>
+    <text class="lh" x="60" y="462">⑤ 执行 ObjectFactory.getObject() 拿到 A 的早期引用（若 A 需要 AOP，代理就在此刻生成），</text>
+    <text class="lh" x="60" y="486">　 把结果放进二级缓存，同时从三级缓存移除</text>
+    <text class="lh" x="60" y="530">⑥ B 拿到 A 的早期引用，完成填充 → B 进入一级缓存</text>
+    <text class="lh" x="60" y="560">⑦ A 继续填充属性，拿到完整的 B，完成创建 → A 也进入一级缓存</text>
+
+    <rect class="amber" x="30" y="594" width="940" height="92" rx="10"/>
+    <text class="t" x="500" y="618">为什么必须有三级，二级不够吗？</text>
+    <text class="t2" x="60" y="644">如果只有二级缓存，A 的早期引用在「第一次被循环依赖」时就必须确定是原始对象还是代理对象。</text>
+    <text class="t2" x="60" y="668">用三级缓存的 ObjectFactory，可以把「要不要生成代理」这件事延迟到真正发生循环依赖时才决定 ——</text>
+    <text class="t2" x="60" y="684">既保证需要代理时代理能提前生成，又保证没有循环依赖时 Bean 走正常流程。</text>
+  </svg>
+  <figcaption>图 7-2　三级缓存解决循环依赖的完整过程</figcaption>
+</figure>
+
+<div class="key"><b>三级缓存的边界（必答）：</b>只能解决<strong>单例 Bean</strong> + <strong>setter / 字段注入</strong>的循环依赖。<strong>构造器注入的循环依赖解决不了</strong> —— 因为对象还没实例化出来，根本没有机会提前暴露引用。原型（prototype）作用域的循环依赖也无法解决（Spring 会直接抛 BeanCurrentlyInCreationException）。</div>
+
+<h3>7.4 AOP 与动态代理</h3>
+
+<table>
+  <thead><tr><th></th><th>JDK 动态代理</th><th>CGLIB 动态代理</th></tr></thead>
+  <tbody>
+    <tr><td>前提</td><td>目标类<strong>必须实现接口</strong></td><td>目标类不能是 final，方法不能是 final</td></tr>
+    <tr><td>原理</td><td>基于接口生成 $Proxy 类，实现 InvocationHandler</td><td>基于继承生成子类，实现 MethodInterceptor</td></tr>
+    <tr><td>Spring 的选择</td><td>有接口时默认用 JDK 代理</td><td>无接口时用 CGLIB；也可强制 <code>proxyTargetClass=true</code></td></tr>
+    <tr><td>效率</td><td>创建快、调用略慢</td><td>创建慢（要生成字节码）、调用快</td></tr>
+  </tbody>
+</table>
+
+<p><strong>核心概念</strong>：切面（Aspect）、连接点（JoinPoint）、切点（Pointcut）、通知（Advice：Before / After / AfterReturning / AfterThrowing / Around）。</p>
+
+<div class="tip"><b>Spring Boot 2.x 起默认使用 CGLIB 代理</b>（<code>spring.aop.proxy-target-class=true</code>）。原因是 CGLIB 不需要接口，能避免「目标类实现了接口但注入时用了具体类导致失败」这类问题。</div>
+
+<h3>7.5 @Transactional 的原理与失效场景</h3>
+
+<p><strong>原理</strong>：<code>@Transactional</code> 的实现就是 AOP。容器为被标注的 Bean 生成代理对象，在方法调用前后由 <code>TransactionInterceptor</code> 开启 / 提交 / 回滚事务。</p>
+
+<table>
+  <thead><tr><th>失效场景</th><th>原因</th><th>解决</th></tr></thead>
+  <tbody>
+    <tr><td><strong>方法自调用</strong>（同一类内 A 调 B）</td><td>走的是 <code>this</code>，<strong>没经过代理对象</strong></td><td>注入自己、<code>AopContext.currentProxy()</code>、拆到另一个 Bean</td></tr>
+    <tr><td><strong>方法不是 public</strong></td><td>Spring 默认只对 public 方法生效（CGLIB 下 protected/包级也有限支持，但不可依赖）</td><td>改成 public</td></tr>
+    <tr><td><strong>异常被自己 catch 了</strong></td><td>异常没抛到代理层，事务拦截器认为执行成功</td><td>catch 后重新抛出，或手动 <code>setRollbackOnly()</code></td></tr>
+    <tr><td><strong>抛出检查异常</strong></td><td>默认只对 RuntimeException / Error 回滚</td><td><code>@Transactional(rollbackFor = Exception.class)</code></td></tr>
+    <tr><td><strong>多线程调用</strong></td><td>事务上下文绑定在 ThreadLocal 上，子线程拿不到</td><td>子线程内开启自己的事务</td></tr>
+    <tr><td><strong>类没被 Spring 管理</strong></td><td>自己 new 出来的对象不会生成代理</td><td>交给容器管理</td></tr>
+    <tr><td><strong>传播行为设置不当</strong></td><td>如外层 REQUIRED、内层又 catch 了异常</td><td>理解 REQUIRES_NEW / NESTED 的语义差异</td></tr>
+  </tbody>
+</table>
+
+<div class="warn"><b>回滚规则要记牢：</b>默认<strong>只对 RuntimeException 和 Error 回滚</strong>，对检查异常（Exception 的直接子类，如 IOException）<strong>不回滚</strong>。所以生产代码里统一写 <code>@Transactional(rollbackFor = Exception.class)</code> 是最稳妥的做法。</div>
+
+<h4>七种传播行为（记住最常用的四个）</h4>
+
+<table>
+  <thead><tr><th>传播行为</th><th>语义</th></tr></thead>
+  <tbody>
+    <tr><td><strong>REQUIRED</strong>（默认）</td><td>有事务就加入，没有就新建</td></tr>
+    <tr><td><strong>REQUIRES_NEW</strong></td><td>总是新建事务，<strong>挂起外层事务</strong>（内层回滚不影响外层）</td></tr>
+    <tr><td><strong>NESTED</strong></td><td>嵌套事务，靠 <strong>savepoint</strong> 实现，内层回滚不影响外层</td></tr>
+    <tr><td><strong>SUPPORTS</strong></td><td>有事务就用，没有就以非事务方式执行</td></tr>
+    <tr><td>NOT_SUPPORTED / MANDATORY / NEVER</td><td>分别是不支持事务（挂起外层）/ 必须已有事务 / 必须没有事务</td></tr>
+  </tbody>
+</table>
+
+<h3>7.6 Spring MVC 请求处理流程</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 620" role="img" aria-label="Spring MVC 请求流程">
+    <defs>
+      <marker id="arr25" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb25" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr25" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg25" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <rect class="blue" x="120" y="20" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="48">① 请求到达 DispatcherServlet</text>
+    <text class="lh" x="590" y="48">前端控制器，所有请求的统一入口</text>
+    <path class="ed" d="M340,76 L340,94" marker-end="url(#arr25)"/>
+
+    <rect class="blue" x="120" y="96" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="124">② HandlerMapping 查找 Handler</text>
+    <text class="lh" x="590" y="124">根据 URL 匹配到方法，并组装拦截器链</text>
+    <path class="ed" d="M340,152 L340,170" marker-end="url(#arr25)"/>
+
+    <rect class="amber" x="120" y="172" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="200">③ preHandle → HandlerAdapter 调用</text>
+    <text class="lh" x="590" y="190">拦截器的 preHandle 在 Handler 执行前调用</text>
+    <text class="lh" x="590" y="212">返回 false 则直接中断请求</text>
+    <path class="ed" d="M340,228 L340,246" marker-end="url(#arr25)"/>
+
+    <rect class="green" x="120" y="248" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="276">④ Controller 处理业务</text>
+    <text class="lh" x="590" y="266">参数解析：@RequestParam / @PathVariable / @RequestBody</text>
+    <text class="lh" x="590" y="288">返回值：视图名 或 @ResponseBody 对象</text>
+    <path class="ed" d="M340,304 L340,322" marker-end="url(#arr25)"/>
+
+    <rect class="blue" x="120" y="324" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="352">⑤ 返回 ModelAndView</text>
+    <text class="lh" x="590" y="352">@ResponseBody 时跳过视图，直接走消息转换器写响应</text>
+    <path class="ed" d="M340,380 L340,398" marker-end="url(#arr25)"/>
+
+    <rect class="amber" x="120" y="400" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="428">⑥ postHandle → ViewResolver 解析</text>
+    <text class="lh" x="590" y="418">postHandle 在 Handler 返回之后、视图渲染之前</text>
+    <text class="lh" x="590" y="440">ViewResolver 把逻辑视图名解析成具体的 View</text>
+    <path class="ed" d="M340,456 L340,474" marker-end="url(#arr25)"/>
+
+    <rect class="green" x="120" y="476" width="440" height="56" rx="9"/>
+    <text class="t" x="340" y="504">⑦ 渲染视图，写回响应</text>
+    <text class="lh" x="590" y="504">afterCompletion 在渲染完成后调用，可做资源清理</text>
+
+    <rect class="gray" x="30" y="552" width="940" height="56" rx="10"/>
+    <text class="t2" x="500" y="574">拦截器的三个扩展点要按顺序记：preHandle（进入前）→ postHandle（返回后）→ afterCompletion（渲染后）</text>
+    <text class="t2" x="500" y="596">三者与 Handler 的执行关系，是这道题最常追问的细节</text>
+  </svg>
+  <figcaption>图 7-3　Spring MVC 的完整请求链路与拦截器执行时机</figcaption>
+</figure>
+
+<h3>7.7 Spring Boot 自动配置</h3>
+
+<p><code>@SpringBootApplication</code> 是三个注解的组合：</p>
+
+<ul>
+  <li><code>@SpringBootConfiguration</code>：本质是 <code>@Configuration</code>，标记这是配置类。</li>
+  <li><code>@ComponentScan</code>：扫描当前包及子包下的组件。</li>
+  <li><code>@EnableAutoConfiguration</code>：触发自动配置。</li>
+</ul>
+
+<p><strong>自动配置的加载过程</strong>：</p>
+
+<ol>
+  <li><code>@EnableAutoConfiguration</code> 通过 <code>@Import(AutoConfigurationImportSelector.class)</code> 引入选择器。</li>
+  <li>选择器读取类路径下 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>（Spring Boot 2.7 之前是 <code>spring.factories</code>）里列出的所有自动配置类。</li>
+  <li>再用 <strong><code>@Conditional</code> 系列注解</strong>过滤：比如 <code>@ConditionalOnClass</code>（类路径存在某类才生效）、<code>@ConditionalOnMissingBean</code>（用户没自己定义才生效）。</li>
+  <li>最终把满足条件的配置类注册成 Bean 定义。</li>
+</ol>
+
+<div class="key"><b>一句话总结：</b>自动配置 = <strong>「把所有候选配置类读进来，再用 @Conditional 条件装配筛出当前项目真正需要的那些」</strong>。这也是为什么默认配置总能被你的自定义 Bean 覆盖 —— 因为有 <code>@ConditionalOnMissingBean</code>。</div>
+
+<h3>7.8 高频追问速答</h3>
+
+<div class="qa"><b>Q：BeanFactory 和 ApplicationContext 的区别？</b><br>
+A：BeanFactory 是最基础的容器，<strong>懒加载</strong>（getBean 时才创建）；ApplicationContext 是它的增强版，<strong>启动时就预实例化单例 Bean</strong>，并且额外支持国际化、事件发布、资源加载、AOP 等企业级能力。</div>
+
+<div class="qa"><b>Q：Bean 的作用域有哪几种？</b><br>
+A：<strong>singleton</strong>（默认，容器内一个）、<strong>prototype</strong>（每次 getBean 都新建）、request、session、application、websocket。注意：prototype 的 Bean 容器<strong>不负责销毁</strong>。</div>
+
+<div class="qa"><b>Q：@Autowired 和 @Resource 的区别？</b><br>
+A：<code>@Autowired</code> 是 Spring 的，<strong>按类型注入</strong>，多个候选时配合 <code>@Qualifier</code> 或 <code>@Primary</code>；<code>@Resource</code> 是 JSR-250 标准，<strong>默认按名称注入</strong>，找不到名称再按类型。</div>
+
+<div class="qa"><b>Q：Bean 是线程安全的吗？</b><br>
+A：容器不保证。Spring 的单例 Bean 是<strong>共享实例</strong>，如果它有可变状态（成员变量），就需要自己做同步（用 ThreadLocal、无状态设计或加锁）。这也是 Service / Controller 通常写成无状态的原因。</div>
+
+<div class="qa"><b>Q：Spring 事务和 MyBatis 是怎么配合的？</b><br>
+A：Spring 通过 <code>DataSourceTransactionManager</code> 管理连接，把 Connection 绑定到当前线程的 <code>TransactionSynchronizationManager</code>；MyBatis 的 <code>SqlSessionTemplate</code> 从 Spring 拿这个连接，从而保证同一个事务内的多个 Mapper 调用<strong>复用同一个数据库连接</strong>。</div>
+
+</section>
+
+<!-- ================================================================= -->
+<!-- ============================ 第 8 章 ============================ -->
+<!-- ================================================================= -->
+<section id="s8">
+<h2 class="ch"><small>第 8 章</small>速查表与复习路线</h2>
+
+<h3>8.1 七天复习路线</h3>
+
+<figure class="dg">
+  <svg viewBox="0 0 1000 300" role="img" aria-label="复习路线">
+    <defs>
+      <marker id="arr26" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#8e99ab"/></marker>
+      <marker id="arrb26" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#2f6fed"/></marker>
+      <marker id="arrr26" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#d64545"/></marker>
+      <marker id="arrg26" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 z" fill="#1f9d63"/></marker>
+    </defs>
+    <line x1="30" y1="46" x2="970" y2="46" stroke="#d6dbe5" stroke-width="3"/>
+
+    <rect class="blue" x="30" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="95" y="82">第 1 天</text>
+    <text class="t2" x="95" y="108">HashMap</text>
+    <text class="t2" x="95" y="128">ConcurrentHashMap</text>
+    <text class="t2" x="95" y="152">JUC / AQS</text>
+
+    <rect class="blue" x="165" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="230" y="82">第 2 天</text>
+    <text class="t2" x="230" y="108">JVM 内存</text>
+    <text class="t2" x="230" y="128">GC / 收集器</text>
+    <text class="t2" x="230" y="152">线程池</text>
+
+    <rect class="amber" x="300" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="365" y="82">第 3 天</text>
+    <text class="t2" x="365" y="108">Redis 数据结构</text>
+    <text class="t2" x="365" y="128">持久化 / 高可用</text>
+    <text class="t2" x="365" y="152">三大缓存问题</text>
+
+    <rect class="amber" x="435" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="500" y="82">第 4 天</text>
+    <text class="t2" x="500" y="108">分布式事务</text>
+    <text class="t2" x="500" y="128">2PC / TCC</text>
+    <text class="t2" x="500" y="152">Seata / 消息一致</text>
+
+    <rect class="green" x="570" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="635" y="82">第 5 天</text>
+    <text class="t2" x="635" y="108">Bean 生命周期</text>
+    <text class="t2" x="635" y="128">三级缓存</text>
+    <text class="t2" x="635" y="152">事务 / MVC</text>
+
+    <rect class="purple" x="705" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="770" y="82">第 6 天</text>
+    <text class="t2" x="770" y="108">项目复盘</text>
+    <text class="t2" x="770" y="128">难点与优化</text>
+    <text class="t2" x="770" y="152">自我介绍</text>
+
+    <rect class="red" x="840" y="60" width="130" height="112" rx="9"/>
+    <text class="t" x="905" y="82">第 7 天</text>
+    <text class="t2" x="905" y="108">只看速记稿</text>
+    <text class="t2" x="905" y="128">口述每个流程</text>
+    <text class="t2" x="905" y="152">模拟面试</text>
+
+    <rect class="gray" x="30" y="200" width="940" height="80" rx="10"/>
+    <text class="t" x="500" y="224">复习的关键不是「看」而是「讲」</text>
+    <text class="t2" x="500" y="250">每学完一个主题，合上资料，对着空气把流程讲一遍 —— 能讲顺才是真的记住了</text>
+    <text class="t2" x="500" y="272">讲不顺的地方就是你的薄弱点，回过头去看那一节的图</text>
+  </svg>
+  <figcaption>图 8-1　七天复习路线建议</figcaption>
+</figure>
+
+<h3>8.2 最容易忘的 30 个点</h3>
+
+<table>
+  <thead><tr><th>主题</th><th>最容易卡壳的点</th></tr></thead>
+  <tbody>
+    <tr><td>HashMap</td><td>① 树化要同时满足「链表 ≥ 8」和「数组 ≥ 64」　② 扩容时元素要么原位、要么 +oldCap　③ 0.75 是空间与冲突的折中</td></tr>
+    <tr><td>ConcurrentHashMap</td><td>① JDK8 用 CAS + synchronized 锁桶，取消了 Segment　② size 是近似的（baseCount + CounterCell）　③ 不允许 null</td></tr>
+    <tr><td>JVM 内存</td><td>① 程序计数器是唯一不会 OOM 的　② JDK8 后方法区 = 元空间 = 本地内存　③ 直接内存不受 -Xmx 限制</td></tr>
+    <tr><td>GC</td><td>① 可达性分析 + GC Roots，不是引用计数　② 新生代复制、老年代标记-整理、CMS 标记-清除　③ CMS 四阶段中只有初始标记和重新标记会 STW</td></tr>
+    <tr><td>类加载</td><td>① 准备阶段赋零值，初始化才赋真实值　② 双亲委派是「向上委派、向下加载」　③ 打破场景：SPI、Tomcat、OSGi</td></tr>
+    <tr><td>AQS</td><td>① state + CLH 双向队列　② 独占与共享的区别在 state 的语义　③ 唤醒 head.next 后要重新竞争，所以默认非公平</td></tr>
+    <tr><td>锁</td><td>① 无锁 → 偏向 → 轻量级 → 重量级，不可逆　② JDK15 起偏向锁默认关闭　③ CAS 三大问题：ABA、自旋、单变量</td></tr>
+    <tr><td>ThreadLocal</td><td>① key 是弱引用、value 是强引用　② 泄漏因为 Thread 长期存活　③ 必须 remove</td></tr>
+    <tr><td>线程池</td><td>① 核心 → 队列 → 非核心 → 拒绝　② 无界队列让 maximumPoolSize 失效　③ 别用 Executors</td></tr>
+    <tr><td>Redis</td><td>① 穿透 vs 击穿 vs 雪崩的区别　② 先更新库再删缓存，删而不是更新　③ 分布式锁四要素：NX、PX、唯一值、Lua</td></tr>
+    <tr><td>分布式事务</td><td>① TCC 三坑：幂等、防悬挂、空回滚　② 可靠消息的两个前提：回查兜底 + 消费幂等　③ 没有银弹</td></tr>
+    <tr><td>Spring</td><td>① AOP 代理在 postProcessAfterInitialization 生成　② 三级缓存解决不了构造器循环依赖　③ 事务默认只对 RuntimeException 回滚</td></tr>
+  </tbody>
+</table>
+
+<h3>8.3 项目经验题怎么答</h3>
+
+<p>面试官问「你在项目里怎么用的」，通常不是想听技术名词，而是想看<strong>你解决问题的过程</strong>。推荐这个四段式结构：</p>
+
+<ol>
+  <li><strong>背景与问题</strong>：什么业务场景、原来的做法出了什么问题、量级是多少（有数字最好）。</li>
+  <li><strong>方案对比</strong>：你考虑过哪几种方案，各自的取舍是什么，<strong>为什么最终选了这个</strong>。</li>
+  <li><strong>落地细节</strong>：具体怎么改的，踩了哪些坑（这部分最加分）。</li>
+  <li><strong>结果</strong>：量化收益，比如响应时间下降多少、QPS 提升多少、故障减少多少。</li>
+</ol>
+
+<div class="key"><b>把八股接到项目上的三个万能锚点：</b><br>
+① <strong>线程池</strong>：异步任务用了自定义线程池，做了业务隔离和队列积压告警。<br>
+② <strong>Redis</strong>：热点数据缓存，讲了过期时间加随机防雪崩、分布式锁用 Lua 释放。<br>
+③ <strong>分布式事务</strong>：跨服务一致性用可靠消息 + 本地消息表，消费端用唯一索引做幂等。</div>
+
+<h3>8.4 面试前 30 分钟只做三件事</h3>
+
+<ol>
+  <li>把 <strong>第 8.2 节的表格</strong>通读一遍，唤醒记忆。</li>
+  <li>对着空气口述四条主线：<strong>HashMap 的 put → 线程池的执行流程 → CMS 四阶段 → Bean 生命周期</strong>。</li>
+  <li>把项目里的两个亮点在脑子里过一遍「背景 - 方案 - 落地 - 结果」。</li>
+</ol>
+
+<div class="tip"><b>最后提醒：</b>面试里遇到不会的题，别硬编。<br>
+可以说「这块我了解的是……（说出你知道的部分），但更深的细节我还在补，回去我会重点看这块」。<br>
+<strong>承认边界 + 展示思考路径</strong>，比胡编一个错误答案的分数高得多。</div>
+
+</section>
+
+</div>
+</body>
+</html>
