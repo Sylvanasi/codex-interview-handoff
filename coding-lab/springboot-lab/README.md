@@ -31,7 +31,7 @@
 命令行（装了 Maven 的话）：
 
 ```bash
-cd "/Users/wufeng/Documents/ChatGPT/面试/coding-lab/springboot-lab"
+cd coding-lab/springboot-lab        # 在仓库根目录下执行（仓库：codex-interview-handoff）
 mvn spring-boot:run
 ```
 
@@ -106,7 +106,7 @@ mvn test
 2. 设密码并启动（密码走环境变量，不写进代码库）：
 
 ```bash
-cd "/Users/wufeng/Documents/ChatGPT/面试/coding-lab/springboot-lab"
+cd coding-lab/springboot-lab        # 在仓库根目录下执行（仓库：codex-interview-handoff）
 export MYSQL_PASSWORD='你的MySQL密码'
 mvn spring-boot:run -Dspring-boot.run.profiles=infra
 ```
