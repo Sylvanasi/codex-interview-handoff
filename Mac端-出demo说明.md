@@ -30,6 +30,17 @@
 - **落点**：统一放 `coding-lab/` 下，一个 demo 一个目录，附 README。
 - **验收**：本地跑通后，把终端输出贴回对话；Windows 侧据此把该条技能写进简历并补真实数字。
 
+## 二·补 · Docker 连不上就交给本人跑
+
+Mac 上的 Docker 由 OrbStack 提供（`/usr/local/bin/docker`），**AI 侧的沙箱大概率连不到 docker socket**（历史上就是连不上的）。
+遇到这种情况不要卡住，按这个来：
+
+1. 把建表 / 造数 / `EXPLAIN` 的 SQL 与命令**写成一份可以直接粘贴的命令清单**（含 `docker compose up -d mysql`、`docker exec ... < xxx.sql`）；
+2. 交给本人在他自己的终端里跑，让他把输出贴回来；
+3. 输出到手后再由你补上代码、追问与验收结论，写进 `coding-lab/<demo名>/练习记录.md`。
+
+`coding-lab/slow-sql/`（sqlite 免安装版）能在没有 Docker 的环境直接跑，可以拿它先对一遍 SQL 与预期结果，再上 MySQL 拿真实 `EXPLAIN`。
+
 ## 三、当前 demo 队列（只有三个）
 
 | 顺序 | 主题 | 对应简历措辞 | 状态 |
