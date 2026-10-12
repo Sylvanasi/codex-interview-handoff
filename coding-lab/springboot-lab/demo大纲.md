@@ -159,6 +159,27 @@
 - **做什么**：并发写推送记录表。
 - **要能答**：一条 SQL 一个事务 vs 批量 `insert … values (…),(…)`；行锁等待 / 死锁怎么定位（`show engine innodb status`）；推送日志表该建什么索引。
 
+**交付物与目录（照这个来，不用自己设计）**
+
+- **目录**：`coding-lab/mysql-meeting-lab/`，附 `README.md` 与 `run.sh`（起 MySQL 8 容器 → 建表造数 → 跑串行/并发两版 → 打印对比）。MySQL 用 Docker 起，参考已有的 `coding-lab/mysql-index-lab/docker-compose.yml`。
+- **建表**（够用就行，别照抄真实系统）：
+
+  | 表 | 字段 | 造数 |
+  |---|---|---|
+  | `meeting` | `id, subject, hold_time, status` | 少量 |
+  | `meeting_topic` | `id, meeting_id, subject, status, publish_time` | 5 万行 |
+  | `topic_attendee` | `id, topic_id, person_id` | 每议题 10 行；**先不建索引** |
+  | `push_log` | `id, meeting_id, person_id, status, create_time` | 空表，跑完看写入 |
+
+- **基线 SQL**：循环执行 `select person_id from topic_attendee where topic_id = ?`（一场会议 8 个议题 = 8 次；改成"每个议题再回查一次详情"就变成几十次）。
+- **要记录的数字**：保存一次会议的 **SQL 条数** 与 **总耗时**；抓一条 `EXPLAIN` 记下 `type / key / rows`；加索引 + 换 `in` 批量后再记一遍；下发环节记串行总耗时、线程池并发总耗时、拒绝策略触发次数、失败条数。
+
+**验收（跑通什么样算过）**
+
+- 能贴出一份 before / after：SQL 条数从几十 → 个位数；`type` 从 `ALL` → `ref`；`rows` 从 5 万 → 个位数。
+- 第 2 关和第 4 关的追问能口头答上来（`EXPLAIN` 各列怎么读 / 线程池 7 参数与拒绝策略）。
+- 练习记录写到 `coding-lab/mysql-meeting-lab/练习记录.md`。
+
 **产出物**：一串 `EXPLAIN` 前后对比（`type` / `key` / `rows` / `Extra`），加一张「查参会人 → 拼集合 → 并发下发」的链路图。
 
 ---
@@ -195,6 +216,29 @@
 
 - **做什么**：把列表要显示的列补进索引，看 `Extra=Using index`；再对比 `limit 200000, 20` 与游标分页（`where id > ? limit 20`）。
 - **要能答**：回表是什么、什么时候值得做覆盖索引；`offset` 大为什么一定慢；索引多了的代价。
+
+**交付物与目录（照这个来）**
+
+- **目录**：`coding-lab/mysql-index-lab/topic-list/`（直接复用同目录下已有的 MySQL 8 compose，别另起一套）。
+- **表**：`meeting_topic(id, subject, status, publish_time, create_time, proposer_dept)`，5 万行；`status` 只给 3 个取值（`10` 草稿 / `20` 审批中 / `30` 已上会），`publish_time` 铺满两年。
+- **基线 SQL**：
+
+  ```sql
+  select id, subject, status, publish_time
+    from meeting_topic
+   where status in ('20','30')
+   order by publish_time desc
+   limit 0, 20;
+  ```
+
+- **要跑的四种索引**（每种都记一遍 `EXPLAIN`）：无索引 → 单列 `(publish_time)` → 联合 `(status, publish_time)` → 反例 `(publish_time, status)`；再加一轮覆盖索引 `(status, publish_time, subject)`。
+- **要记录的数字**：每次的 `type / possible_keys / key / key_len / rows / filtered / Extra`，加上实际耗时；深分页那关记 `limit 200000,20` 与游标分页的耗时差。
+
+**验收（跑通什么样算过）**
+
+- 有一张至少 5 行的 `EXPLAIN` 对照表（无索引 / 单列 / 联合 / 反例 / 覆盖），能指着表说清每列什么意思、为什么列顺序这么定。
+- `filesort` 在加联合索引后消失，`rows` 从几万掉到几十 —— 这个变化要能在输出里指出来。
+- 练习记录写到 `coding-lab/mysql-index-lab/topic-list/练习记录.md`。
 
 **产出物**：一张「SQL → EXPLAIN → 加索引 → 再 EXPLAIN」的对照表，能口头从头讲完。
 
