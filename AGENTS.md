@@ -44,10 +44,11 @@ Mac 端开工请先读 `Mac端-出demo说明.md`。
 |---|---|
 | `候选人画像-蒸馏.md` | 真实背景与能力边界，校准基准 |
 | `面试路线图-简历逐条台账.md` | A/B/C/D 四组共 64 条 + 46 道八股，带判定与处理动作 |
-| `简历-v2.md`、`简历-v3..v8.docx` | 简历迭代；**最新版是 `简历-v8.docx`**，每版改动见同名的「这版改了什么」 |
+| `简历-v2.md`、`简历-v3..v25.docx` | 简历迭代；**最新版是 `简历-v25.docx`**，每版改动见同名的「这版改了什么」 |
 | `Mac端-出demo说明.md` | Mac 侧开工说明：先读什么、出 demo 的顺序、练完怎么回传 |
-| `coding-lab/springboot-lab/demo大纲.md` | demo 关卡大纲（SFTP 并发 → 待办聚合 → 幂等） |
-| `build_resume_v7.py`、`build_resume_v8.py` | 用 python-docx 生成对应版本的简历 docx |
+| `coding-lab/springboot-lab/demo大纲.md` | demo 关卡大纲（SFTP 并发 → 待办聚合 → 幂等 → MySQL 索引与执行计划） |
+| `build_resume_v7..v25.py` | 用 python-docx 生成对应版本的简历 docx（每个脚本 import 前一版再覆盖常量） |
+| `sync_views.py` | 从简历 docx 抽出 `项目经历-当前版.md`、`项目经历-蓝凌期.md`，给右侧阅读用 |
 | `render_docx_local.py` | 把 docx 渲染成 PNG，用来做排版检查 |
 | `面试作战地图.html` | 64 + 46 个格子的状态看板 |
 | `缺口与项目场景.html` | 答得不完整 / 该会不会的点 + 对应 demo + 项目落点 |
