@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1100" viewBox="0 0 1200 1100"><defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker><style>text{font-family:"PingFang SC","Microsoft YaHei",sans-serif;fill:#172033}.t{font-size:28px;font-weight:700}.h{font-size:22px;font-weight:700}.b{font-size:19px}.s{font-size:17px;fill:#475569}.line{stroke:#64748b;stroke-width:2.5;marker-end:url(#a)}</style></defs><rect width="1200" height="1100" fill="#f8fafc"/>
+<text x="50" y="50" class="t" text-anchor="start">索引条件下推 ICP：先过滤索引记录，再决定是否回表</text>
+<text x="50" y="82" class="s" text-anchor="start">“下推” = 把原本由 Server 层判断的一部分 WHERE 条件，交给存储引擎判断。</text>
+<rect x="50" y="105" width="1100" height="132" rx="12" fill="#e0e7ff" stroke="#cbd5e1"/>
+<text x="70" y="137" class="b" text-anchor="start">教学假设表 employee(id, dept_id, name, phone)，二级联合索引 (dept_id, name)</text>
+<text x="70" y="173" class="b" text-anchor="start">SELECT phone FROM employee WHERE dept_id = 10 AND name LIKE '%张%';</text>
+<text x="70" y="209" class="s" text-anchor="start">索引有 dept_id、name、主键 id，没有 phone → 最终仍需回表取 phone。</text>
+<rect x="50" y="265" width="500" height="405" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<rect x="65" y="280" width="470" height="48" rx="12" fill="#fee2e2" stroke="#cbd5e1"/>
+<text x="300" y="311" class="h" text-anchor="middle">没有 ICP：先回表，再筛选</text>
+<rect x="75" y="350" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="300" y="379" class="b" text-anchor="middle">用 dept_id=10 定位索引区间</text>
+<text x="300" y="406" class="s" text-anchor="middle">假设得到 100 条索引记录</text>
+<line x1="300" y1="425" x2="300" y2="450" class="line"/>
+<rect x="75" y="452" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="300" y="481" class="b" text-anchor="middle">按主键 id 回表 100 次</text>
+<text x="300" y="508" class="s" text-anchor="middle">把完整行读出来，包含 phone</text>
+<line x1="300" y1="527" x2="300" y2="552" class="line"/>
+<rect x="75" y="554" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="300" y="583" class="b" text-anchor="middle">Server 层检查 name LIKE '%张%'</text>
+<text x="300" y="610" class="s" text-anchor="middle">假设仅 10 行符合，返回这 10 人的 phone</text>
+<rect x="650" y="265" width="500" height="405" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<rect x="665" y="280" width="470" height="48" rx="12" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="900" y="311" class="h" text-anchor="middle">有 ICP：索引内先筛选，再回表</text>
+<rect x="675" y="350" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="900" y="379" class="b" text-anchor="middle">用 dept_id=10 定位索引区间</text>
+<text x="900" y="406" class="s" text-anchor="middle">同样得到 100 条索引记录</text>
+<line x1="900" y1="425" x2="900" y2="450" class="line"/>
+<rect x="675" y="452" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="900" y="481" class="b" text-anchor="middle">引擎检查索引里的 name LIKE '%张%'</text>
+<text x="900" y="508" class="s" text-anchor="middle">先淘汰 90 条，只留下 10 个主键 id</text>
+<line x1="900" y1="527" x2="900" y2="552" class="line"/>
+<rect x="675" y="554" width="450" height="74" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="900" y="583" class="b" text-anchor="middle">仅对留下的 10 条回表</text>
+<text x="900" y="610" class="s" text-anchor="middle">读取 phone，返回结果</text>
+<text x="600" y="705" class="h" text-anchor="middle">扫描索引记录可能还是 100 条；节省的是回表次数：100 → 10。</text>
+<text x="600" y="736" class="s" text-anchor="middle">数字仅用于讲原理；真实能省多少，取决于下推条件能过滤掉多少记录。</text>
+<rect x="50" y="765" width="1100" height="150" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="799" class="h" text-anchor="start">什么时候可能用上？</text>
+<text x="70" y="833" class="b" text-anchor="start">① InnoDB 用二级索引访问，且仍需读取完整行（回表）。</text>
+<text x="70" y="864" class="b" text-anchor="start">② 有可由索引列判断的 WHERE 条件，可以在回表前检查。</text>
+<text x="70" y="895" class="b" text-anchor="start">③ ICP 开关开启，且访问方式和表达式受支持；最终以实际计划为准。</text>
+<rect x="50" y="940" width="1100" height="125" rx="12" fill="#ede9fe" stroke="#cbd5e1"/>
+<text x="70" y="974" class="h" text-anchor="start">别混淆：Using index condition ≠ Using index</text>
+<text x="70" y="1008" class="s" text-anchor="start">Using index condition：索引条件下推，仍可能回表。Using index：通常表示覆盖索引，无需回表。</text>
+<text x="70" y="1040" class="s" text-anchor="start">ICP 不要求一定是联合索引；本图用联合索引，是为了让“减少回表”的收益更直观。</text>
+</svg>

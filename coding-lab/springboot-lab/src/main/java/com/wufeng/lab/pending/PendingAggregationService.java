@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
  * 并发之后总耗时 ≈ 最慢的那个上游，抖动被超时和降级挡住。
  *
  * 【这段代码要能回答面试四连问】
- * 1. 线程池参数怎么定     → corePoolSize 按上游数量给（IO 密集），队列必须有界
+ * 1. 线程池参数怎么定     → corePoolSize=4 是单请求实验起点，生产需按并发量与下游容量验证，队列必须有界
  * 2. 超时怎么处理         → Future.get(timeout)，而且是"整页时间预算"，不是每个上游各等一遍
  * 3. 超时之后任务停了吗   → 见下面的注释，cancel(true) 对阻塞 IO 不保证立刻生效
  * 4. 一个上游挂了怎么办   → 只降级该上游，其余照常返回，绝不整页失败
@@ -39,12 +40,12 @@ public class PendingAggregationService {
     private final ThreadPoolExecutor executor;
     private final RestTemplate restTemplate;
     private final PendingProperties props;
-    private final CountingCallerRunsPolicy rejectionPolicy;
+    private final CountingAbortPolicy rejectionPolicy;
 
     public PendingAggregationService(ThreadPoolExecutor pendingExecutor,
                                      @Qualifier("pendingRestTemplate") RestTemplate pendingRestTemplate,
                                      PendingProperties props,
-                                     CountingCallerRunsPolicy rejectionPolicy) {
+                                     CountingAbortPolicy rejectionPolicy) {
         this.executor = pendingExecutor;
         this.restTemplate = pendingRestTemplate;
         this.props = props;
@@ -54,7 +55,7 @@ public class PendingAggregationService {
     /** 聚合入口：parallel=true 走并发，false 走串行（用来对比耗时）。 */
     public Map<String, Object> aggregate(boolean parallel) {
         long startNanos = System.nanoTime();
-        List<Map<String, Object>> systems = parallel ? aggregateParallel() : aggregateSerial();
+        List<Map<String, Object>> systems = parallel ? aggregateParallel(startNanos) : aggregateSerial();
         long totalMillis = (System.nanoTime() - startNanos) / 1_000_000;
 
         List<PendingItem> all = new ArrayList<>();
@@ -81,55 +82,66 @@ public class PendingAggregationService {
 
     // ==================== 并发版 ====================
 
-    private List<Map<String, Object>> aggregateParallel() {
-        List<String> systems = props.getSystems();
-        long budgetNanos = TimeUnit.MILLISECONDS.toNanos(props.getTimeoutMillis());
-
-        // ① 先把所有上游任务提交出去。提交本身很快、不阻塞 —— 关键就在这里：
-        //    四个 HTTP 请求是同时在飞的，而不是一个接一个。
+    private List<Map<String, Object>> aggregateParallel(long startNanos) {
+        long deadline = startNanos + TimeUnit.MILLISECONDS.toNanos(props.getTimeoutMillis());
         Map<String, Future<List<PendingItem>>> futures = new LinkedHashMap<>();
-        Map<String, Long> submittedAt = new LinkedHashMap<>();
-        for (String system : systems) {
-            submittedAt.put(system, System.currentTimeMillis());
-            Callable<List<PendingItem>> task = () -> fetch(system);
-            futures.put(system, executor.submit(task));
-        }
-
-        // ② 再按"整页时间预算"逐个收结果。
-        //    如果每个上游各等一次 timeout，最坏就是 4 x timeout，
-        //    "整页 250ms 出结果"这句话就是假的 —— 所以这里用统一的 deadline。
-        long deadline = System.nanoTime() + budgetNanos;
-        List<Map<String, Object>> out = new ArrayList<>();
-        for (String system : systems) {
-            Future<List<PendingItem>> future = futures.get(system);
-            long begin = submittedAt.get(system);
-            long remaining = deadline - System.nanoTime();
-            try {
-                if (remaining <= 0) {
-                    future.cancel(true);
-                    out.add(entry(system, "TIMEOUT", List.of(), cost(begin), "整页时间预算已耗尽，未再等待"));
-                    continue;
+        Map<String, Map<String, Object>> immediate = new LinkedHashMap<>();
+        for (String system : props.getSystems()) {
+            if (Thread.currentThread().isInterrupted()) {
+                immediate.put(system, entry(system, "INTERRUPTED", List.of(), elapsed(startNanos), "调用线程被中断"));
+            } else if (System.nanoTime() >= deadline) {
+                immediate.put(system, entry(system, "TIMEOUT", List.of(), elapsed(startNanos), "提交前预算已耗尽"));
+            } else {
+                try {
+                    futures.put(system, executor.submit(() -> fetch(system)));
+                } catch (RejectedExecutionException e) {
+                    immediate.put(system, entry(system, "REJECTED", List.of(), elapsed(startNanos), "线程池已满或关闭"));
                 }
-                List<PendingItem> items = future.get(remaining, TimeUnit.NANOSECONDS);
-                out.add(entry(system, "OK", items, cost(begin), null));
-            } catch (TimeoutException e) {
-                // cancel(true) 发的是"中断信号"。RestTemplate 的读操作是阻塞在 socket 上的，
-                // 中断并不能保证立刻把它叫停 —— 它可能还要等到读超时（上面配的 1 秒）才退出。
-                // 这正是 pending-hub 里"跑完了终端还停几秒才退出"的原因。
-                boolean cancelled = future.cancel(true);
-                log.warn("上游 {} 超时降级：超过预算 {}ms 未返回，cancel={}",
-                        system, props.getTimeoutMillis(), cancelled);
-                out.add(entry(system, "TIMEOUT", List.of(), cost(begin), "超过时间预算未返回"));
-            } catch (ExecutionException e) {
-                Throwable cause = e.getCause() == null ? e : e.getCause();
-                log.warn("上游 {} 调用失败，降级：{}", system, cause.toString());
-                out.add(entry(system, "ERROR", List.of(), cost(begin), cause.getClass().getSimpleName()));
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                out.add(entry(system, "INTERRUPTED", List.of(), cost(begin), "收取结果的线程被中断"));
             }
         }
+        List<Map<String, Object>> out = new ArrayList<>();
+        try {
+            for (String system : props.getSystems()) {
+                if (immediate.containsKey(system)) {
+                    out.add(immediate.get(system));
+                    continue;
+                }
+                Future<List<PendingItem>> future = futures.get(system);
+                String state = "OK";
+                String note = null;
+                List<PendingItem> items = List.of();
+                try {
+                    if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+                    long remaining = deadline - System.nanoTime();
+                    // 已完成的 Future 不再等待，即使预算已耗尽也保留结果。
+                    if (future.isDone()) items = future.get();
+                    else if (remaining > 0) items = future.get(remaining, TimeUnit.NANOSECONDS);
+                    else throw new TimeoutException();
+                } catch (TimeoutException e) {
+                    future.cancel(true);
+                    state = "TIMEOUT";
+                    note = "超过聚合时间预算；取消不保证阻塞 HTTP 立即停止";
+                } catch (ExecutionException e) {
+                    state = "ERROR";
+                    note = e.getCause().getClass().getSimpleName();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    futures.values().forEach(f -> { if (!f.isDone()) f.cancel(true); });
+                    state = "INTERRUPTED";
+                    note = "调用线程被中断，已取消剩余任务";
+                }
+                out.add(entry(system, state, items, elapsed(startNanos), note));
+            }
+        } finally {
+            futures.values().forEach(f -> { if (!f.isDone()) f.cancel(true); });
+            // 清理尚未执行的取消任务，减少过期任务占用队列。
+            executor.purge();
+        }
         return out;
+    }
+
+    private long elapsed(long startNanos) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
     }
 
     // ==================== 串行版（对照基线） ====================
@@ -149,14 +161,7 @@ public class PendingAggregationService {
 
     // ==================== 工具 ====================
 
-    /**
-     * 真正交给线程池执行的任务体：调一个上游的待办接口。
-     *
-     * 【注意异常是怎么冒出来的】
-     * 任务里抛出的异常不会走到线程的 UncaughtExceptionHandler，
-     * 而是被 ThreadPoolExecutor 收进 Future，只有调用 get() 时才包成 ExecutionException 抛出。
-     * 所以用 execute() 提交、又不拿返回值的任务，异常会被静默吞掉 —— 这是排查线上问题的常见大坑。
-     */
+    /** submit 把异常保存在 Future 中，get 时抛 ExecutionException；execute 的异常可到达未捕获异常处理器。 */
     private List<PendingItem> fetch(String system) {
         PendingItem[] items = restTemplate.getForObject(
                 props.getBaseUrl() + "/{system}", PendingItem[].class, system);

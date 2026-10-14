@@ -33,7 +33,7 @@ spring:
     username: root
     # 密码不写死在文件里：优先读环境变量 MYSQL_PASSWORD，没设就用 change-me 占位。
     # 这也是真实项目的做法 —— 配置进代码库，密码进环境变量或配置中心。
-    password: ${MYSQL_PASSWORD:Passw0rd}
+    password: ${MYSQL_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10

@@ -1,0 +1,11 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:?请先设置 MYSQL_PASSWORD}
+    ports:
+      - "127.0.0.1:3308:3306"
+    volumes:
+      - meeting-data:/var/lib/mysql
+volumes:
+  meeting-data:

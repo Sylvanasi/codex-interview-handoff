@@ -1,0 +1,120 @@
+=== init ===
+SQL> SELECT COUNT(*) AS attendee_rows FROM topic_attendee
+attendee_rows
+500240
+SQL> SELECT COUNT(*) AS relations,COUNT(DISTINCT person_id) AS people FROM topic_attendee WHERE topic_id IN(1,2,3,4,5,6,7,8)
+relations	people
+320	300
+=== before ===
+round=1 batch=false SQL=9 uniquePeople=300 elapsed=383.63ms
+round=2 batch=false SQL=9 uniquePeople=300 elapsed=313.58ms
+round=3 batch=false SQL=9 uniquePeople=300 elapsed=312.38ms
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id=1
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	ALL	null	null	null	null	499086	10.0	Using where
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id IN (1,2,3,4,5,6,7,8)
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	ALL	null	null	null	null	499086	50.0	Using where
+=== index ===
+round=1 batch=false SQL=9 uniquePeople=300 elapsed=16.68ms
+round=2 batch=false SQL=9 uniquePeople=300 elapsed=10.06ms
+round=3 batch=false SQL=9 uniquePeople=300 elapsed=8.69ms
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id=1
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	ref	idx_topic	idx_topic	8	const	40	100.0	null
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id IN (1,2,3,4,5,6,7,8)
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	range	idx_topic	idx_topic	8	null	320	100.0	Using index condition
+=== after ===
+round=1 batch=true SQL=2 uniquePeople=300 elapsed=7.86ms
+round=2 batch=true SQL=2 uniquePeople=300 elapsed=6.70ms
+round=3 batch=true SQL=2 uniquePeople=300 elapsed=6.30ms
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id=1
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	ref	idx_topic	idx_topic	8	const	40	100.0	null
+SQL> EXPLAIN SELECT person_id FROM topic_attendee WHERE topic_id IN (1,2,3,4,5,6,7,8)
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	topic_attendee	null	range	idx_topic	idx_topic	8	null	320	100.0	Using index condition
+=== notify ===
+accepted=300 rejected=0
+notification round=1 serial=6984.76ms parallel=906.01ms speedup=7.71
+accepted=300 rejected=0
+notification round=2 serial=6981.38ms parallel=890.61ms speedup=7.84
+accepted=300 rejected=0
+notification round=3 serial=7068.66ms parallel=882.25ms speedup=8.01
+accepted=300 rejected=0
+accepted=17 rejected=0
+故障隔离：成功283，失败17；仅重试失败17，最终成功300（不重发原成功283）。
+SQL> SELECT meeting_id,status,COUNT(*) AS total FROM push_log WHERE meeting_id=10 GROUP BY meeting_id,status
+meeting_id	status	total
+10	SUCCESS	300
+=== saturation ===
+saturation submitted=20 success=2 REJECTED=18 workerThreads=[meeting-notify-1] caller=main
+=== logs ===
+log round=1 single(300SQL/300tx)=592.32ms concurrent(300SQL/300tx,8conn)=132.13ms batch(3SQL/3tx)=19.28ms
+log round=2 single(300SQL/300tx)=431.68ms concurrent(300SQL/300tx,8conn)=115.05ms batch(3SQL/3tx)=12.84ms
+log round=3 single(300SQL/300tx)=435.85ms concurrent(300SQL/300tx,8conn)=117.77ms batch(3SQL/3tx)=10.99ms
+SQL> EXPLAIN SELECT person_id FROM push_log WHERE meeting_id=20 AND person_id=1
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	push_log	null	const	uk_meeting_person	uk_meeting_person	16	const,const	1	100.0	Using index
+SQL> EXPLAIN SELECT id FROM push_log WHERE status='FAILED' ORDER BY create_time LIMIT 20
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	push_log	null	ref	idx_status_time	idx_status_time	82	const	1	100.0	Using index
+=== locks ===
+捕获MySQL死锁 error=1213，整笔事务回滚
+
+=== 本实验死锁诊断摘录 ===
+LATEST DETECTED DEADLOCK
+------------------------
+2026-10-13 02:23:16 281472401207040
+*** (1) TRANSACTION:
+TRANSACTION 4384, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+LOCK WAIT 4 lock struct(s), heap size 1128, 3 row lock(s), undo log entries 1
+MySQL thread id 81, OS thread handle 281472832687872, query id 2348 192.168.215.1 root updating
+UPDATE push_log SET status='LOCK_TEST' WHERE meeting_id=99 AND person_id=2
+
+*** (1) HOLDS THE LOCK(S):
+RECORD LOCKS space id 15 page no 11 n bits 624 index uk_meeting_person of table `meeting_lab`.`push_log` trx id 4384 lock_mode X locks rec but not gap
+Record lock, heap no 136 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 8; hex 8000000000000063; asc        c;;
+ 1: len 8; hex 8000000000000001; asc         ;;
+ 2: len 8; hex 8000000000000bde; asc         ;;
+
+
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 15 page no 11 n bits 624 index uk_meeting_person of table `meeting_lab`.`push_log` trx id 4384 lock_mode X locks rec but not gap waiting
+Record lock, heap no 135 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 8; hex 8000000000000063; asc        c;;
+ 1: len 8; hex 8000000000000002; asc         ;;
+ 2: len 8; hex 8000000000000bdf; asc         ;;
+
+
+*** (2) TRANSACTION:
+TRANSACTION 4383, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+LOCK WAIT 4 lock struct(s), heap size 1128, 3 row lock(s), undo log entries 1
+MySQL thread id 82, OS thread handle 281472831569664, query id 2347 192.168.215.1 root updating
+UPDATE push_log SET status='LOCK_TEST' WHERE meeting_id=99 AND person_id=1
+
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 15 page no 11 n bits 624 index uk_meeting_person of table `meeting_lab`.`push_log` trx id 4383 lock_mode X locks rec but not gap
+Record lock, heap no 135 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 8; hex 8000000000000063; asc        c;;
+ 1: len 8; hex 8000000000000002; asc         ;;
+ 2: len 8; hex 8000000000000bdf; asc         ;;
+
+
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 15 page no 11 n bits 624 index uk_meeting_person of table `meeting_lab`.`push_log` trx id 4383 lock_mode X locks rec but not gap waiting
+Record lock, heap no 136 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 8; hex 8000000000000063; asc        c;;
+ 1: len 8; hex 8000000000000001; asc         ;;
+ 2: len 8; hex 8000000000000bde; asc         ;;
+
+*** WE ROLL BACK TRANSACTION (2)
+------------
+=== 最终代码独立重跑 selftest ===
+accepted=3 rejected=0
+PASS 调用线程中断/保留标志/清理队列/通知线程最终释放
+PASS 饱和立即拒绝/计数/调用线程不执行任务/取消释放/失败隔离/submit异常可观察

@@ -28,8 +28,8 @@ import org.springframework.web.client.RestTemplate;
 public class PendingConfig {
 
     @Bean
-    public CountingCallerRunsPolicy pendingRejectionPolicy() {
-        return new CountingCallerRunsPolicy();
+    public CountingAbortPolicy pendingRejectionPolicy() {
+        return new CountingAbortPolicy();
     }
 
     /**
@@ -40,14 +40,14 @@ public class PendingConfig {
      *   4 unit              上面时间的单位
      *   5 workQueue         工作队列（这里是有界 ArrayBlockingQueue）
      *   6 threadFactory     线程工厂（这里给线程起名）
-     *   7 handler           拒绝策略（这里自定义 CallerRuns + 计数）
+     *   7 handler           拒绝策略（这里自定义 Abort + 计数）
      *
      * 执行顺序也要背下来：**核心线程 → 队列 → 非核心线程 → 拒绝**。
      * 注意"队列满了才开非核心线程"这一点，很多人会答成"核心满了就开非核心"。
      */
     @Bean(destroyMethod = "shutdown")
     public ThreadPoolExecutor pendingExecutor(PendingProperties props,
-                                              CountingCallerRunsPolicy rejectionPolicy) {
+                                              CountingAbortPolicy rejectionPolicy) {
         return new ThreadPoolExecutor(
                 props.getCorePoolSize(),
                 props.getMaxPoolSize(),

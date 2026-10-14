@@ -1,0 +1,8 @@
+VERSION()
+8.4.11
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression
+meeting_topic	0	PRIMARY	1	id	A	51604	NULL	NULL		BTREE			YES	NULL
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	ALL	NULL	NULL	NULL	NULL	51604	10.00	Using where; Using filesort
+EXPLAIN
+-> Limit: 20 row(s)  (cost=5473 rows=20) (actual time=14.7..14.7 rows=20 loops=1)\n    -> Sort: meeting_topic.publish_time DESC, meeting_topic.id DESC, limit input to 20 row(s) per chunk  (cost=5473 rows=51604) (actual time=14.7..14.7 rows=20 loops=1)\n        -> Filter: (meeting_topic.`status` = '20')  (cost=5473 rows=51604) (actual time=0.0991..12.5 rows=16667 loops=1)\n            -> Table scan on meeting_topic  (cost=5473 rows=51604) (actual time=0.0462..8.76 rows=50000 loops=1)\n

@@ -1,0 +1,54 @@
+@cursor_time	@cursor_id
+2024-10-18 17:44:00	23416
+EXPLAIN
+-> Limit/Offset: 20/10000 row(s)  (cost=4310 rows=20) (actual time=3.67..3.68 rows=20 loops=1)\n    -> Filter: (meeting_topic.`status` = '20')  (cost=4310 rows=28728) (actual time=0.0685..3.35 rows=10020 loops=1)\n        -> Covering index lookup on meeting_topic using idx_cover (status='20') (reverse)  (cost=4310 rows=28728) (actual time=0.0673..2.42 rows=10020 loops=1)\n
+EXPLAIN
+-> Limit: 20 row(s)  (cost=3093 rows=20) (actual time=0.0899..0.0977 rows=20 loops=1)\n    -> Filter: ((meeting_topic.`status` = '20') and ((meeting_topic.publish_time < <cache>((@cursor_time))) or ((meeting_topic.publish_time = <cache>((@cursor_time))) and (meeting_topic.id < <cache>((@cursor_id))))))  (cost=3093 rows=12369) (actual time=0.0895..0.0961 rows=20 loops=1)\n        -> Covering index range scan on meeting_topic using idx_cover over (status = '20' AND publish_time < '2024-10-18 17:44:00') OR (status = '20' AND publish_time = '2024-10-18 17:44:00' AND id < 23416) (reverse)  (cost=3093 rows=12369) (actual time=0.0865..0.0889 rows=20 loops=1)\n
+offset_count
+20
+cursor_count
+20
+same_ids
+20
+source	id	publish_time
+offset	40009	2024-10-18 17:11:00
+offset	6292	2024-10-18 15:08:00
+offset	22885	2024-10-18 14:35:00
+offset	39478	2024-10-18 14:02:00
+offset	5761	2024-10-18 11:59:00
+offset	22354	2024-10-18 11:26:00
+offset	38947	2024-10-18 10:53:00
+offset	5230	2024-10-18 08:50:00
+offset	21823	2024-10-18 08:17:00
+offset	38416	2024-10-18 07:44:00
+offset	4699	2024-10-18 05:41:00
+offset	21292	2024-10-18 05:08:00
+offset	37885	2024-10-18 04:35:00
+offset	4168	2024-10-18 02:32:00
+offset	20761	2024-10-18 01:59:00
+offset	37354	2024-10-18 01:26:00
+offset	3637	2024-10-17 23:23:00
+offset	20230	2024-10-17 22:50:00
+offset	36823	2024-10-17 22:17:00
+offset	3106	2024-10-17 20:14:00
+source	id	publish_time
+cursor	40009	2024-10-18 17:11:00
+cursor	6292	2024-10-18 15:08:00
+cursor	22885	2024-10-18 14:35:00
+cursor	39478	2024-10-18 14:02:00
+cursor	5761	2024-10-18 11:59:00
+cursor	22354	2024-10-18 11:26:00
+cursor	38947	2024-10-18 10:53:00
+cursor	5230	2024-10-18 08:50:00
+cursor	21823	2024-10-18 08:17:00
+cursor	38416	2024-10-18 07:44:00
+cursor	4699	2024-10-18 05:41:00
+cursor	21292	2024-10-18 05:08:00
+cursor	37885	2024-10-18 04:35:00
+cursor	4168	2024-10-18 02:32:00
+cursor	20761	2024-10-18 01:59:00
+cursor	37354	2024-10-18 01:26:00
+cursor	3637	2024-10-17 23:23:00
+cursor	20230	2024-10-17 22:50:00
+cursor	36823	2024-10-17 22:17:00
+cursor	3106	2024-10-17 20:14:00

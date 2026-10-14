@@ -1,0 +1,24 @@
+server:
+  address: 127.0.0.1
+  port: ${SERVER_PORT:8084}
+  shutdown: graceful
+spring:
+  application:
+    name: mysql-meeting-lab
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/meeting_lab?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:}
+    hikari:
+      maximum-pool-size: 8
+      connection-timeout: 3000
+  sql:
+    init:
+      mode: never # 不在启动时删表造数；显式POST /api/lab/init才执行
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

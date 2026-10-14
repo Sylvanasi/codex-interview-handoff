@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1360" viewBox="0 0 1200 1360"><defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker><style>text{font-family:"PingFang SC","Microsoft YaHei",sans-serif;fill:#172033}.title{font-size:29px;font-weight:700}.h{font-size:22px;font-weight:700}.b{font-size:19px}.small{font-size:17px;fill:#475569}.arrow{fill:none;stroke:#64748b;stroke-width:2.5;marker-end:url(#a)}</style></defs><rect width="1200" height="1360" fill="#f8fafc"/>
+<text x="50" y="48" class="title" text-anchor="start">/api/lab/saturation：人为把线程池塞满</text>
+<text x="50" y="81" class="small" text-anchor="start">这是拒绝策略实验，不是正常会议发送；独立池：核心1 / 最大1 / 等待队列1。</text>
+<rect x="40" y="110" width="520" height="990" rx="12" fill="#eff6ff" stroke="#cbd5e1"/>
+<rect x="640" y="110" width="520" height="990" rx="12" fill="#f0fdf4" stroke="#cbd5e1"/>
+<text x="300" y="148" class="h" text-anchor="middle">HTTP 请求线程：提交任务、收集结果</text>
+<text x="900" y="148" class="h" text-anchor="middle">唯一工作线程：执行通知任务</text>
+<rect x="50" y="175" width="500" height="80" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="206" class="h" text-anchor="start">① 创建独立池和两个门闩</text>
+<text x="70" y="236" class="small" text-anchor="start">entered=1，release=1；不使用应用共享通知池</text>
+<path d="M300 255L300 275" class="arrow"/>
+<rect x="50" y="280" width="500" height="80" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="311" class="h" text-anchor="start">② submit：提交人员1的任务</text>
+<text x="70" y="341" class="small" text-anchor="start">立即返回 Future，保存进 accepted</text>
+<path d="M550 320L650 320" class="arrow"/>
+<rect x="650" y="280" width="500" height="80" rx="12" fill="#dcfce7" stroke="#cbd5e1"/>
+<text x="670" y="311" class="h" text-anchor="start">启动任务1，占住唯一工作线程</text>
+<text x="670" y="341" class="small" text-anchor="start">记录 workerNames，然后 entered.countDown()</text>
+<path d="M900 360L900 385" class="arrow"/>
+<rect x="50" y="390" width="500" height="80" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="421" class="h" text-anchor="start">③ entered.await(3秒)</text>
+<text x="70" y="451" class="small" text-anchor="start">等任务1确实启动；计数归零后继续提交</text>
+<path d="M650 410L550 410" class="arrow"/>
+<text x="600" y="390" class="small" text-anchor="middle">已启动</text>
+<rect x="650" y="390" width="500" height="80" rx="12" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="670" y="421" class="h" text-anchor="start">任务1：release.await()</text>
+<text x="670" y="451" class="small" text-anchor="start">release仍是1 → 挂起等待，尚未发送通知</text>
+<path d="M300 470L300 510" class="arrow"/>
+<rect x="50" y="515" width="500" height="80" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="546" class="h" text-anchor="start">④ submit：提交人员2的任务</text>
+<text x="70" y="576" class="small" text-anchor="start">唯一线程被任务1占用 → 任务2进入唯一队列槽</text>
+<rect x="690" y="520" width="420" height="100" rx="12" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="710" y="553" class="h" text-anchor="start">等待队列：容量1</text>
+<text x="710" y="586" class="b" text-anchor="start">[任务2]　队列现在已经满了</text>
+<path d="M550 555L690 555" class="arrow"/>
+<path d="M300 595L300 635" class="arrow"/>
+<rect x="50" y="640" width="500" height="80" rx="12" fill="#fee2e2" stroke="#cbd5e1"/>
+<text x="70" y="671" class="h" text-anchor="start">⑤ submit：继续提交人员3～20</text>
+<text x="70" y="701" class="small" text-anchor="start">线程满 + 队列满 → 18次触发拒绝策略</text>
+<rect x="650" y="660" width="500" height="110" rx="12" fill="#fee2e2" stroke="#cbd5e1"/>
+<text x="670" y="694" class="h" text-anchor="start">拒绝策略：count++，然后抛异常</text>
+<text x="670" y="727" class="small" text-anchor="start">请求线程catch后记下REJECTED结果</text>
+<text x="670" y="751" class="small" text-anchor="start">被拒绝的任务不会执行safeSend</text>
+<path d="M550 680L650 680" class="arrow"/>
+<path d="M900 470V515M1128 470V805" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="1097" y="803" class="small" text-anchor="end">任务1一直等release</text>
+<path d="M300 720L300 835" class="arrow"/>
+<rect x="50" y="840" width="500" height="80" rx="12" fill="#dbeafe" stroke="#cbd5e1"/>
+<text x="70" y="871" class="h" text-anchor="start">⑥ release.countDown()</text>
+<text x="70" y="901" class="small" text-anchor="start">所有20条已尝试提交完，打开任务1的门闩</text>
+<path d="M550 880L650 880" class="arrow"/>
+<rect x="650" y="840" width="500" height="80" rx="12" fill="#dcfce7" stroke="#cbd5e1"/>
+<text x="670" y="871" class="h" text-anchor="start">任务1恢复：safeSend(人员1)</text>
+<text x="670" y="901" class="small" text-anchor="start">成功完成后，工作线程从队列取任务2</text>
+<path d="M900 920L900 945" class="arrow"/>
+<rect x="650" y="950" width="500" height="80" rx="12" fill="#dcfce7" stroke="#cbd5e1"/>
+<text x="670" y="981" class="h" text-anchor="start">执行任务2：safeSend(人员2)</text>
+<text x="670" y="1011" class="small" text-anchor="start">仍由同一个工作线程执行，返回SUCCESS</text>
+<path d="M300 920L300 945" class="arrow"/>
+<rect x="50" y="950" width="500" height="80" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="70" y="981" class="h" text-anchor="start">⑦ 遍历accepted，Future.get(3秒)</text>
+<text x="70" y="1011" class="small" text-anchor="start">等待2个已接收任务的结果；不是等待被拒绝任务</text>
+<rect x="50" y="1120" width="1100" height="105" rx="12" fill="#ede9fe" stroke="#cbd5e1"/>
+<text x="75" y="1155" class="h" text-anchor="start">最终：20次提交 = 2条SUCCESS + 18条REJECTED</text>
+<text x="75" y="1187" class="b" text-anchor="start">callerExecutedNotification=false：HTTP请求线程只提交/收集，没有亲自执行通知。</text>
+<text x="75" y="1212" class="small" text-anchor="start">finally释放门闩并关闭这个独立测试池；不关闭应用共享线程池。</text>
+<rect x="50" y="1245" width="1100" height="85" rx="12" fill="#fff" stroke="#cbd5e1"/>
+<text x="75" y="1275" class="b" text-anchor="start">entered：工作线程 → 请求线程，“我已经启动了，可以继续把队列塞满”。</text>
+<text x="75" y="1308" class="b" text-anchor="start">release：请求线程 → 工作线程，“拒绝实验做完了，你可以继续发通知”。</text>
+</svg>

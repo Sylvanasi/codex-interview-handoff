@@ -1,0 +1,52 @@
+@base = http://127.0.0.1:8084
+
+### 当前实现；默认PracticeSteps，answer profile为ReferenceSteps
+GET {{base}}/api/lab
+
+### 健康
+GET {{base}}/actuator/health
+
+### 第1关：注意！重建meeting_lab四张练习表，清除索引/日志
+POST {{base}}/api/lab/init
+
+### 串行参会人查询：300人、9条SELECT
+GET {{base}}/api/meetings/1/attendees
+
+### 第2关：执行计划
+GET {{base}}/api/lab/explain
+
+### 串行通知：无需TODO，约6~8秒
+POST {{base}}/api/meetings/1/notifications/serial
+
+### TODO-1：给topic_id加索引；初始化后只运行一次
+POST {{base}}/api/lab/index
+
+### TODO-2：批量查人：300人、2条SELECT
+GET {{base}}/api/meetings/1/attendees?mode=batch
+
+### TODO-3：共享池状态
+GET {{base}}/api/lab/pool
+
+### TODO-3、4：独立池饱和：2成功18拒绝，请求线程不执行通知
+POST {{base}}/api/lab/saturation
+
+### TODO-3、4、5：健康并发通知
+POST {{base}}/api/meetings/1/notifications/parallel
+
+### 单条失败隔离，暂不写日志：283成功17失败
+POST {{base}}/api/meetings/1/notifications/parallel?injectFailure=true
+
+### TODO-7：日志写入三轮对比
+POST {{base}}/api/lab/log-benchmark
+
+### 第5关：只在两条练习日志上复现死锁
+POST {{base}}/api/lab/locks
+
+### 故障落表：需要TODO-7
+POST {{base}}/api/meetings/1/notifications/parallel?injectFailure=true&persist=true
+
+### 查会议1日志：重试前283成功17失败
+GET {{base}}/api/meetings/1/logs
+
+### TODO-6：只重试17个失败者，再查日志应300成功
+POST {{base}}/api/meetings/1/retry

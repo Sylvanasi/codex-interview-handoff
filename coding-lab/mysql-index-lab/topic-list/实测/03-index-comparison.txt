@@ -1,0 +1,38 @@
+Table	Op	Msg_type	Msg_text
+topic_list_lab.meeting_topic	analyze	status	OK
+time-first
+time-first
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	index	NULL	idx_time	13	NULL	20	10.00	Using where; Backward index scan
+EXPLAIN
+-> Limit: 20 row(s)  (cost=1.92 rows=2) (actual time=4.81..4.91 rows=20 loops=1)\n    -> Filter: (meeting_topic.`status` = '20')  (cost=1.92 rows=2) (actual time=4.8..4.9 rows=20 loops=1)\n        -> Index scan on meeting_topic using idx_time (reverse)  (cost=1.92 rows=20) (actual time=0.0328..0.129 rows=60 loops=1)\n
+Table	Op	Msg_type	Msg_text
+topic_list_lab.meeting_topic	analyze	status	OK
+status-first-single
+status-first-single
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	ref	idx_status_time	idx_status_time	8	const	10640	100.00	Using where; Backward index scan
+EXPLAIN
+-> Limit: 20 row(s)  (cost=1596 rows=20) (actual time=0.517..0.522 rows=20 loops=1)\n    -> Filter: (meeting_topic.`status` = '20')  (cost=1596 rows=10640) (actual time=0.516..0.52 rows=20 loops=1)\n        -> Index lookup on meeting_topic using idx_status_time (status='20') (reverse)  (cost=1596 rows=10640) (actual time=0.512..0.515 rows=20 loops=1)\n
+status-first-multi
+status-first-multi
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	ALL	idx_status_time	NULL	NULL	NULL	21280	100.00	Using where; Using filesort
+EXPLAIN
+-> Limit: 20 row(s)  (cost=2441 rows=20) (actual time=15.2..15.2 rows=20 loops=1)\n    -> Sort: meeting_topic.publish_time DESC, meeting_topic.id DESC, limit input to 20 row(s) per chunk  (cost=2441 rows=21280) (actual time=15.2..15.2 rows=20 loops=1)\n        -> Filter: (meeting_topic.`status` in ('20','30'))  (cost=2441 rows=21280) (actual time=0.0311..11.9 rows=33334 loops=1)\n            -> Table scan on meeting_topic  (cost=2441 rows=21280) (actual time=0.0278..7.23 rows=50000 loops=1)\n
+Table	Op	Msg_type	Msg_text
+topic_list_lab.meeting_topic	analyze	status	OK
+time-first-multi
+time-first-multi
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	index	NULL	idx_time_status	21	NULL	20	20.00	Using where; Backward index scan
+EXPLAIN
+-> Limit: 20 row(s)  (cost=1.74 rows=4) (actual time=0.0351..0.081 rows=20 loops=1)\n    -> Filter: (meeting_topic.`status` in ('20','30'))  (cost=1.74 rows=4) (actual time=0.0342..0.0792 rows=20 loops=1)\n        -> Index scan on meeting_topic using idx_time_status (reverse)  (cost=1.74 rows=20) (actual time=0.0328..0.0748 rows=31 loops=1)\n
+Table	Op	Msg_type	Msg_text
+topic_list_lab.meeting_topic	analyze	status	OK
+cover-single
+cover-single
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	SIMPLE	meeting_topic	NULL	ref	idx_cover	idx_cover	8	const	9735	100.00	Using where; Backward index scan; Using index
+EXPLAIN
+-> Limit: 20 row(s)  (cost=1461 rows=20) (actual time=0.0546..0.0591 rows=20 loops=1)\n    -> Filter: (meeting_topic.`status` = '20')  (cost=1461 rows=9735) (actual time=0.0541..0.0579 rows=20 loops=1)\n        -> Covering index lookup on meeting_topic using idx_cover (status='20') (reverse)  (cost=1461 rows=9735) (actual time=0.0531..0.0555 rows=20 loops=1)\n

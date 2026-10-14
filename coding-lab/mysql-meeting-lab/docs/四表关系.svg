@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="940" viewBox="0 0 1200 940">
+<defs>
+ <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#475569"/></marker>
+ <marker id="flow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#7c3aed"/></marker>
+ <style>
+ text{font-family:"PingFang SC","Microsoft YaHei",sans-serif;fill:#172033}
+ .title{font-size:29px;font-weight:700}.sub{font-size:17px;fill:#64748b}
+ .head{font-size:23px;font-weight:700}.field{font-size:19px}.hint{font-size:17px;fill:#475569}
+ .edge{fill:none;stroke:#475569;stroke-width:2.5;marker-end:url(#arrow)}
+ .label{font-size:18px;font-weight:600}.flow{fill:none;stroke:#7c3aed;stroke-width:2.5;stroke-dasharray:8 5;marker-end:url(#flow)}
+ </style>
+</defs>
+<rect width="1200" height="940" fill="#f8fafc"/>
+<text x="60" y="55" class="title">会议通知 Demo · 四张表怎样连起来</text>
+<text x="60" y="88" class="sub">实线：逻辑上的一对多关联　　紫色虚线：程序汇总人员并写日志的流程</text>
+
+<rect x="60" y="135" width="440" height="260" rx="15" fill="white" stroke="#93c5fd" stroke-width="2"/>
+<path d="M75 135H485Q500 135 500 150V197H60V150Q60 135 75 135" fill="#dbeafe"/>
+<text x="82" y="175" class="head">meeting · 会议主表</text>
+<text x="82" y="228" class="field">id　会议 ID（主键）</text>
+<text x="82" y="265" class="field">subject　会议名称</text>
+<text x="82" y="302" class="field">hold_time / status　时间 / 状态</text>
+<text x="82" y="358" class="hint">一行 = 一场会议，例如“集团例会”</text>
+
+<rect x="700" y="135" width="440" height="260" rx="15" fill="white" stroke="#93c5fd" stroke-width="2"/>
+<path d="M715 135H1125Q1140 135 1140 150V197H700V150Q700 135 715 135" fill="#dbeafe"/>
+<text x="722" y="175" class="head">meeting_topic · 会议议题表</text>
+<text x="722" y="228" class="field">id　议题 ID（主键）</text>
+<text x="722" y="265" class="field">meeting_id　所属会议 ID</text>
+<text x="722" y="302" class="field">subject / status / publish_time</text>
+<text x="722" y="358" class="hint">一行 = 一个议题；本例一场会挂 8 个</text>
+
+<path d="M500 270H700" class="edge"/>
+<text x="600" y="225" text-anchor="middle" class="label">1 → 多个议题</text>
+<text x="600" y="251" text-anchor="middle" class="hint">id = meeting_id</text>
+
+<rect x="700" y="490" width="440" height="245" rx="15" fill="white" stroke="#6ee7b7" stroke-width="2"/>
+<path d="M715 490H1125Q1140 490 1140 505V552H700V505Q700 490 715 490" fill="#d1fae5"/>
+<text x="722" y="530" class="head">topic_attendee · 议题参会关系表</text>
+<text x="722" y="585" class="field">id　关系记录 ID（主键）</text>
+<text x="722" y="622" class="field">topic_id　所属议题 ID</text>
+<text x="722" y="659" class="field">person_id　参会人员 ID</text>
+<text x="722" y="705" class="hint">一行 = 某个人参加某个议题</text>
+
+<path d="M920 395V490" class="edge"/>
+<text x="905" y="433" text-anchor="end" class="label">1 → 多条参会关系</text>
+<text x="905" y="460" text-anchor="end" class="hint">id = topic_id</text>
+
+<rect x="60" y="490" width="440" height="245" rx="15" fill="white" stroke="#c4b5fd" stroke-width="2"/>
+<path d="M75 490H485Q500 490 500 505V552H60V505Q60 490 75 490" fill="#ede9fe"/>
+<text x="82" y="530" class="head">push_log · 通知结果表</text>
+<text x="82" y="585" class="field">id　日志 ID（主键）</text>
+<text x="82" y="622" class="field">meeting_id / person_id　会议 / 人员</text>
+<text x="82" y="659" class="field">status / create_time　结果 / 时间</text>
+<text x="82" y="705" class="hint">唯一键：(meeting_id, person_id)</text>
+
+<path d="M280 395V490" class="edge"/>
+<text x="295" y="433" class="label">1 → 多个人的通知日志</text>
+<text x="295" y="460" class="hint">id = meeting_id</text>
+
+<path d="M920 735V790H280V735" class="flow"/>
+<rect x="375" y="773" width="450" height="32" rx="10" fill="#f8fafc"/>
+<text x="600" y="795" text-anchor="middle" style="font-size:18px;fill:#6d28d9">按会议汇总 person_id → 去重 → 通知 → 落表</text>
+
+<rect x="60" y="825" width="1080" height="85" rx="12" fill="#e2e8f0"/>
+<text x="80" y="853" class="hint">示例：会议 1 → 8 个议题 → 320 条参会关系 → 去重后 300 人 → 每人一条通知结果。</text>
+<text x="80" y="879" class="hint">说明：当前 SQL 没有 FOREIGN KEY；关联靠字段值及查询条件。person_id 是模拟人员 ID，未建人员表。</text>
+<text x="80" y="902" class="hint">push_log 是“一场会议 × 一个人”的当前结果；重试更新原记录，不是每次尝试都新增一条日志。</text>
+</svg>

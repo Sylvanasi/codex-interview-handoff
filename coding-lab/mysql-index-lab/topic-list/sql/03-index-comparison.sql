@@ -1,0 +1,28 @@
+USE topic_list_lab;
+-- 一次只保留一种实验索引，避免其他索引干扰选择。
+CREATE INDEX idx_time ON meeting_topic(publish_time,id);
+ANALYZE TABLE meeting_topic;
+SELECT 'time-first';
+EXPLAIN SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
+EXPLAIN ANALYZE SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
+DROP INDEX idx_time ON meeting_topic;
+CREATE INDEX idx_status_time ON meeting_topic(status,publish_time,id);
+ANALYZE TABLE meeting_topic;
+SELECT 'status-first-single';
+EXPLAIN SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
+EXPLAIN ANALYZE SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
+SELECT 'status-first-multi';
+EXPLAIN SELECT id,subject,status,publish_time FROM meeting_topic WHERE status IN ('20','30') ORDER BY publish_time DESC,id DESC LIMIT 20;
+EXPLAIN ANALYZE SELECT id,subject,status,publish_time FROM meeting_topic WHERE status IN ('20','30') ORDER BY publish_time DESC,id DESC LIMIT 20;
+DROP INDEX idx_status_time ON meeting_topic;
+CREATE INDEX idx_time_status ON meeting_topic(publish_time,id,status);
+ANALYZE TABLE meeting_topic;
+SELECT 'time-first-multi';
+EXPLAIN SELECT id,subject,status,publish_time FROM meeting_topic WHERE status IN ('20','30') ORDER BY publish_time DESC,id DESC LIMIT 20;
+EXPLAIN ANALYZE SELECT id,subject,status,publish_time FROM meeting_topic WHERE status IN ('20','30') ORDER BY publish_time DESC,id DESC LIMIT 20;
+DROP INDEX idx_time_status ON meeting_topic;
+CREATE INDEX idx_cover ON meeting_topic(status,publish_time,id,subject);
+ANALYZE TABLE meeting_topic;
+SELECT 'cover-single';
+EXPLAIN SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
+EXPLAIN ANALYZE SELECT id,subject,status,publish_time FROM meeting_topic WHERE status='20' ORDER BY publish_time DESC,id DESC LIMIT 20;
